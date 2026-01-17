@@ -1,67 +1,91 @@
-import { APP_VERSION } from './core/constants.js';
-import { $, toast } from './core/utils.js';
-import { mountBookshelf } from './features/bookshelf/bookshelf.logic.js';
-import { mountEditor } from './features/editor/editor.logic.js';
-import { mountAIDrawer, setAIDrawerContext } from './features/ai/ai.logic.js';
+// app/main.js
+import { Store } from './state/store.js';
+import { renderBookshelf } from './views/bookshelf.js';
+import { renderEditor } from './views/editor.js';
 
-const root = $('#app');
-const btnAi = $('#btnAi');
-const btnHome = $('#btnHome');
+const root = document.getElementById('app');
+const topSub = document.getElementById('topSub');
+const btnAiTop = document.getElementById('btnAiTop');
 
-// Global context bridge (editor tells AI which book/tab/text is active)
-window.AES = {
-  version: APP_VERSION,
-  setAIContext: setAIDrawerContext
-};
+const store = new Store();
 
-function route(){
-  const h = location.hash || '#/books';
-  const m = h.match(/^#\/edit\/([^/]+)$/);
-  if(m) return { name: 'edit', id: m[1] };
-  return { name: 'books' };
+function toast(msg){
+  const el = document.getElementById('toast');
+  if(!el) return;
+  el.textContent = msg;
+  el.classList.add('show');
+  clearTimeout(toast._t);
+  toast._t = setTimeout(() => el.classList.remove('show'), 1400);
 }
 
-async function render(){
-  const r = route();
-  if(r.name === 'books'){
-    btnHome.style.display = 'none';
-    root.innerHTML = '';
-    mountBookshelf(root);
-    setAIDrawerContext(null); // no book
-    return;
-  }
-  if(r.name === 'edit'){
-    btnHome.style.display = 'inline-flex';
-    root.innerHTML = '';
-    mountEditor(root, r.id);
-    return;
-  }
+function setSub(txt){ if(topSub) topSub.textContent = txt; }
+
+function parseRoute(){
+  const h = location.hash || '#/bookshelf';
+  const [path, qs] = h.split('?');
+  const params = new URLSearchParams(qs || '');
+  return { path, params };
 }
 
-btnAi.addEventListener('click', ()=>{
-  mountAIDrawer();
-  window.__AES_AI__.toggle(true);
-});
+function go(h){
+  location.hash = h;
+}
 
-btnHome.addEventListener('click', ()=>{
-  location.hash = '#/books';
-});
+function ensureValidEditor(bookId){
+  const b = store.getBook(bookId);
+  if(!b){
+    toast('這本書可能來自舊版本，已回到書庫。');
+    go('#/bookshelf');
+    return null;
+  }
+  return b;
+}
 
-window.addEventListener('hashchange', render);
+function mount(){
+  const { path, params } = parseRoute();
 
-// SW
-if('serviceWorker' in navigator){
-  window.addEventListener('load', async ()=>{
-    try{
-      await navigator.serviceWorker.register('./sw.js');
-    }catch(e){
-      console.warn('SW register failed', e);
-    }
+  if(path === '#/editor'){
+    const id = params.get('id') || '';
+    const tab = params.get('tab') || 'draft';
+    const book = ensureValidEditor(id);
+    if(!book) return;
+
+    setSub('編輯');
+    renderEditor({
+      root,
+      store,
+      bookId: id,
+      tab,
+      onNavigate: (nextHash) => go(nextHash),
+      onToast: toast
+    });
+
+    btnAiTop.onclick = () => {
+      const cur = parseRoute();
+      const curId = cur.params.get('id') || id;
+      go(`#/editor?id=${encodeURIComponent(curId)}&tab=ai`);
+    };
+    return;
+  }
+
+  setSub('書庫');
+  renderBookshelf({
+    root,
+    store,
+    onOpen: (bookId) => go(`#/editor?id=${encodeURIComponent(bookId)}&tab=draft`),
+    onToast: toast
   });
+
+  btnAiTop.onclick = () => toast('請先開啟一本書，再使用 AI 協作。');
 }
 
-// First render
-render();
+window.addEventListener('hashchange', mount);
 
-// Dev helper
-toast(`Ebook Studio ${APP_VERSION}`);
+window.addEventListener('load', async () => {
+  try{
+    if('serviceWorker' in navigator){
+      await navigator.serviceWorker.register('./sw.js', { scope: './' });
+    }
+  }catch(e){}
+  mount();
+});
