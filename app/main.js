@@ -1,91 +1,100 @@
 // app/main.js
-import { Store } from './state/store.js';
-import { renderBookshelf } from './views/bookshelf.js';
-import { renderEditor } from './views/editor.js';
+import { mountEditor } from './views/editor.js';
+import { createStore } from './state/store.js';
 
 const root = document.getElementById('app');
-const topSub = document.getElementById('topSub');
-const btnAiTop = document.getElementById('btnAiTop');
-
-const store = new Store();
+const toastEl = document.getElementById('toast');
 
 function toast(msg){
-  const el = document.getElementById('toast');
-  if(!el) return;
-  el.textContent = msg;
-  el.classList.add('show');
+  if(!toastEl) return;
+  toastEl.textContent = msg;
+  toastEl.classList.add('show');
   clearTimeout(toast._t);
-  toast._t = setTimeout(() => el.classList.remove('show'), 1400);
+  toast._t = setTimeout(()=> toastEl.classList.remove('show'), 1800);
 }
 
-function setSub(txt){ if(topSub) topSub.textContent = txt; }
+// Simple router: default to editor with a default book
+const store = createStore();
 
-function parseRoute(){
-  const h = location.hash || '#/bookshelf';
-  const [path, qs] = h.split('?');
-  const params = new URLSearchParams(qs || '');
-  return { path, params };
-}
-
-function go(h){
-  location.hash = h;
-}
-
-function ensureValidEditor(bookId){
-  const b = store.getBook(bookId);
-  if(!b){
-    toast('這本書可能來自舊版本，已回到書庫。');
-    go('#/bookshelf');
-    return null;
+function boot(){
+  const hash = location.hash.slice(1);
+  if(!hash){
+    // ensure a default book exists
+    let book = store.getActiveBook();
+    if(!book){
+      book = store.createBook('未命名書稿');
+      store.setActiveBook(book.id);
+    }
+    mountEditor(root, { store, bookId: book.id, toast });
+  }else{
+    const m = new URLSearchParams(hash);
+    const bookId = m.get('book');
+    if(bookId && store.getBook(bookId)){
+      mountEditor(root, { store, bookId, toast });
+    }else{
+      const book = store.getActiveBook() || store.createBook('未命名書稿');
+      store.setActiveBook(book.id);
+      mountEditor(root, { store, bookId: book.id, toast });
+    }
   }
-  return b;
+  bindSounddock();
 }
 
-function mount(){
-  const { path, params } = parseRoute();
+function bindSounddock(){
+  const buttons = Array.from(document.querySelectorAll('.soundbtn'));
+  if(!buttons.length) return;
 
-  if(path === '#/editor'){
-    const id = params.get('id') || '';
-    const tab = params.get('tab') || 'draft';
-    const book = ensureValidEditor(id);
-    if(!book) return;
+  const A = new Audio();
+  A.loop = true;
+  A.volume = 0.25;
 
-    setSub('編輯');
-    renderEditor({
-      root,
-      store,
-      bookId: id,
-      tab,
-      onNavigate: (nextHash) => go(nextHash),
-      onToast: toast
+  const key = 'angel_sound_v2';
+  let state = null;
+  try{ state = JSON.parse(localStorage.getItem(key) || 'null'); }catch(e){}
+
+  function setPressed(mode){
+    buttons.forEach(b => b.setAttribute('aria-pressed', String(b.dataset.sound === mode && state?.playing)));
+  }
+
+  async function play(mode){
+    try{
+      const src = mode === 'night' ? 'assets/audio/night.mp3' : 'assets/audio/ocean.mp3';
+      if(A.src !== new URL(src, location.href).href){
+        A.pause();
+        A.src = src;
+      }
+      await A.play();
+      state = { mode, playing: true, vol: A.volume };
+      localStorage.setItem(key, JSON.stringify(state));
+      setPressed(mode);
+    }catch(err){
+      console.warn('Audio play blocked until user gesture.', err);
+      toast('請再點一次播放');
+    }
+  }
+  function pause(){
+    A.pause();
+    state = { ...(state||{}), playing:false };
+    localStorage.setItem(key, JSON.stringify(state));
+    setPressed(state?.mode || '');
+  }
+
+  buttons.forEach(btn => {
+    btn.addEventListener('click', () => {
+      const mode = btn.dataset.sound;
+      if(state?.playing && state?.mode === mode){
+        pause();
+      }else{
+        play(mode);
+      }
     });
-
-    btnAiTop.onclick = () => {
-      const cur = parseRoute();
-      const curId = cur.params.get('id') || id;
-      go(`#/editor?id=${encodeURIComponent(curId)}&tab=ai`);
-    };
-    return;
-  }
-
-  setSub('書庫');
-  renderBookshelf({
-    root,
-    store,
-    onOpen: (bookId) => go(`#/editor?id=${encodeURIComponent(bookId)}&tab=draft`),
-    onToast: toast
   });
 
-  btnAiTop.onclick = () => toast('請先開啟一本書，再使用 AI 協作。');
+  if(state){
+    setPressed(state.mode || '');
+  }
 }
 
-window.addEventListener('hashchange', mount);
+boot();
 
-window.addEventListener('load', async () => {
-  try{
-    if('serviceWorker' in navigator){
-      await navigator.serviceWorker.register('./sw.js', { scope: './' });
-    }
-  }catch(e){}
-  mount();
-});
+window._angel = { store };
