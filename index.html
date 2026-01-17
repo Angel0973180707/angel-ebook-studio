@@ -7,31 +7,37 @@
     content="width=device-width, initial-scale=1, viewport-fit=cover"
   />
   <meta name="theme-color" content="#0b1411" />
-
   <title>Angel Ebook Studio</title>
 
-  <!-- PWA -->
   <link rel="manifest" href="manifest.json" />
   <link rel="icon" href="assets/icons/icon-192.png" />
   <link rel="apple-touch-icon" href="assets/icons/icon-192.png" />
 
-  <!-- Style -->
   <link rel="stylesheet" href="style.css" />
 </head>
 
 <body>
-  <!-- ===== Top Bar ===== -->
   <header class="topbar">
     <h1 class="brand">Angel Ebook Studio</h1>
     <button id="btnAi" class="btn ghost">AI 協作</button>
   </header>
 
-  <!-- ===== App Root ===== -->
-  <main id="app">
-    <!-- JS 會掛載內容在這裡 -->
-  </main>
+  <!-- ✅ 一定會顯示：用來確認你真的更新到了 -->
+  <div id="buildStamp" style="
+    position: fixed; right: 10px; bottom: 10px;
+    z-index: 9999;
+    font: 12px/1.2 system-ui;
+    padding: 8px 10px;
+    border-radius: 10px;
+    background: rgba(0,0,0,.35);
+    border: 1px solid rgba(255,255,255,.15);
+    color: rgba(255,255,255,.85);
+    backdrop-filter: blur(8px);
+  ">BUILD: 2026-01-17-1600</div>
 
-  <!-- ===== App Entry ===== -->
-  <script type="module" src="app/main.js"></script>
+  <main id="app"></main>
+
+  <!-- ✅ 重要：每次改版就改 v=xxxx，保證抓到新檔 -->
+  <script type="module" src="app/main.js?v=202601171600"></script>
 </body>
 </html>
