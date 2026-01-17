@@ -1,23 +1,16 @@
 // app/features/bookshelf/bookshelf.logic.js
-
 import { bookshelfHTML } from './bookshelf.view.js';
 
 const STORAGE_KEY = 'angel_ebook_books_v1';
 
 function loadBooks() {
-  try {
-    return JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
-  } catch {
-    return [];
-  }
+  try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; }
+  catch { return []; }
 }
-
 function saveBooks(books) {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(books));
 }
-
 function newId() {
-  // 手機 Chrome 多數支援 crypto.randomUUID()
   try { return crypto.randomUUID(); }
   catch { return 'b_' + Date.now() + '_' + Math.random().toString(16).slice(2); }
 }
@@ -31,11 +24,6 @@ export function mountBookshelf(root) {
     root.innerHTML = bookshelfHTML({ books });
   }
 
-  function touch(book) {
-    book.updatedAt = new Date().toISOString();
-    return book;
-  }
-
   render();
 
   root.onclick = (e) => {
@@ -44,15 +32,24 @@ export function mountBookshelf(root) {
 
     const action = btn.dataset.action;
     const item = e.target.closest('.bookItem');
-    const id = item?.dataset?.bookId; // 來自 view 的 data-book-id
+    const id = item?.dataset?.bookId;
 
     if (action === 'newBook') {
-      const book = touch({
+      const now = new Date().toISOString();
+      const book = {
         id: newId(),
         title: '我的新書',
-        status: 'draft', // 先跟 view 顯示「草稿」一致
-        updatedAt: new Date().toISOString()
-      });
+        status: 'draft',
+        updatedAt: now,
+
+        // editor v1 fields
+        inspiration: '',
+        draft: '',
+        content: '',
+
+        // editor v1: custom command library per-user (global), kept elsewhere
+      };
+
       books = [book, ...books];
       saveBooks(books);
       render();
@@ -65,7 +62,7 @@ export function mountBookshelf(root) {
       books = books.map(b => {
         if (b.id !== id) return b;
         const next = (b.status === 'published') ? 'draft' : 'published';
-        return touch({ ...b, status: next });
+        return { ...b, status: next, updatedAt: new Date().toISOString() };
       });
       saveBooks(books);
       render();
@@ -73,6 +70,10 @@ export function mountBookshelf(root) {
     }
 
     if (action === 'delete') {
+      const b = books.find(x => x.id === id);
+      const ok = confirm(`確定刪除「${b?.title || '（未命名）'}」？`);
+      if (!ok) return;
+
       books = books.filter(b => b.id !== id);
       saveBooks(books);
       render();
@@ -80,9 +81,7 @@ export function mountBookshelf(root) {
     }
 
     if (action === 'open') {
-      // 先用最簡單：暫時用 alert 顯示（下一步我會帶你做「編輯器頁」）
-      const b = books.find(x => x.id === id);
-      alert(`開啟：${b?.title || '（未命名）'}\n\n下一步我們做：進入編輯器頁`);
+      location.hash = `#/book/${encodeURIComponent(id)}`;
       return;
     }
   };
