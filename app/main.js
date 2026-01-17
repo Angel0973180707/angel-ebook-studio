@@ -4,7 +4,7 @@ const root = document.getElementById('app');
 function show(msg) {
   root.innerHTML = `
     <section style="padding:24px; line-height:1.6;">
-      <div style="font-size:18px; font-weight:700; margin-bottom:10px;">Ebook Studio</div>
+      <div style="font-size:18px; font-weight:700; margin-bottom:10px;">Angel Ebook Studio</div>
       <pre style="white-space:pre-wrap; opacity:.9;">${escapeHTML(msg)}</pre>
     </section>
   `;
@@ -19,9 +19,17 @@ function escapeHTML(s){
 
 async function boot() {
   try {
-    show('載入書庫模組中…');
+    // 1) 先掛 AI 按鈕（不影響書庫）
+    try {
+      const ai = await import('./features/ai/ai.logic.js');
+      if (ai?.mountAI) ai.mountAI({ btnSelector: '#btnAi' });
+    } catch (e) {
+      // AI 模組不致命，忽略即可
+      console.warn('AI module load skipped:', e);
+    }
 
-    // ✅ 這裡就是關鍵：確保路徑是 /features/bookshelf/（沒有 ai 那層）
+    // 2) 再掛書庫
+    show('載入書庫模組中…');
     const mod = await import('./features/bookshelf/bookshelf.logic.js');
 
     const keys = Object.keys(mod);
