@@ -8,52 +8,56 @@ function escapeHTML(s){
     .replaceAll('>','&gt;');
 }
 
-function show(title, msg) {
+function showFatal(err){
   root.innerHTML = `
-    <section style="padding:18px 16px; line-height:1.6;">
-      <div style="font-size:18px; font-weight:800; margin-bottom:10px;">${escapeHTML(title)}</div>
-      <pre style="white-space:pre-wrap; opacity:.92;">${escapeHTML(msg)}</pre>
-      <div style="margin-top:12px; opacity:.75; font-size:12px;">
-        BUILD: 2026-01-17-1600
-      </div>
+    <section style="padding:24px; line-height:1.6;">
+      <div style="font-size:22px; font-weight:800; margin:0 0 10px;">啟動失敗</div>
+      <div style="opacity:.85; white-space:pre-wrap;">${escapeHTML(err?.message || err)}</div>
+      <div style="margin-top:12px; opacity:.7;">BUILD: 2026-01-17-EDITOR-V1</div>
     </section>
   `;
 }
 
-async function boot() {
-  try {
-    show('啟動中…', '正在載入 modules…');
+async function mountBookshelf(){
+  const mod = await import('./features/bookshelf/bookshelf.logic.js');
+  if (!mod.mountBookshelf) throw new Error('bookshelf.logic.js 缺少 mountBookshelf(root)');
+  mod.mountBookshelf(root);
+}
 
-    // 1) AI（可有可無）
+async function mountEditor(bookId){
+  const mod = await import('./features/editor/editor.logic.js');
+  if (!mod.mountEditor) throw new Error('editor.logic.js 缺少 mountEditor(root, bookId)');
+  mod.mountEditor(root, bookId);
+}
+
+function parseHash(){
+  // #/edit/<id>
+  const h = (location.hash || '').replace(/^#/, '');
+  const parts = h.split('/').filter(Boolean);
+  if (parts[0] === 'edit' && parts[1]) return { page:'edit', id: parts[1] };
+  return { page:'bookshelf' };
+}
+
+async function route(){
+  try{
+    // AI 模組不致命（可有可無）
     try {
       const ai = await import('./features/ai/ai.logic.js');
-      if (ai?.mountAI) {
-        ai.mountAI({ btnSelector: '#btnAi' });
-      } else {
-        console.warn('AI module loaded but mountAI not found');
-      }
+      if (ai?.mountAI) ai.mountAI({ btnSelector: '#btnAi' });
     } catch (e) {
-      console.warn('AI module skipped:', e);
+      console.warn('AI module load skipped:', e);
     }
 
-    // 2) 書庫（必須）
-    const bs = await import('./features/bookshelf/bookshelf.logic.js');
-
-    if (!bs?.mountBookshelf) {
-      const keys = Object.keys(bs || {});
-      show(
-        '書庫掛載失敗',
-        `bookshelf.logic.js 已載入，但找不到 mountBookshelf()\n\nexports:\n- ${keys.join('\n- ')}\n\n請確認 bookshelf.logic.js 內有：\nexport function mountBookshelf(root) { ... }`
-      );
-      return;
+    const r = parseHash();
+    if (r.page === 'edit') {
+      await mountEditor(r.id);
+    } else {
+      await mountBookshelf();
     }
-
-    // ✅ 正常：掛載書庫
-    bs.mountBookshelf(root);
-
-  } catch (err) {
-    show('啟動失敗', err?.stack || err?.message || String(err));
+  } catch (err){
+    showFatal(err);
   }
 }
 
-boot();
+window.addEventListener('hashchange', route);
+route();
