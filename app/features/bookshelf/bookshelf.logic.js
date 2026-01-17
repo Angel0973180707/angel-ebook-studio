@@ -1,27 +1,45 @@
 // app/features/bookshelf/bookshelf.logic.js
 import { bookshelfHTML } from './bookshelf.view.js';
 
-const STORAGE_KEY = 'angel_ebook_books_v1';
+const LS_BOOKS = 'angel_ebook_books_v1';
+
+function safeParse(str, fallback) {
+  try { return JSON.parse(str); } catch { return fallback; }
+}
 
 function loadBooks() {
-  try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; }
-  catch { return []; }
+  return safeParse(localStorage.getItem(LS_BOOKS), []);
 }
-function saveBooks(books) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(books));
+
+function saveBooks(list) {
+  localStorage.setItem(LS_BOOKS, JSON.stringify(list));
 }
-function newId() {
-  try { return crypto.randomUUID(); }
-  catch { return 'b_' + Date.now() + '_' + Math.random().toString(16).slice(2); }
+
+function uid() {
+  return 'b_' + Math.random().toString(16).slice(2) + Date.now().toString(16);
 }
 
 export function mountBookshelf(root) {
   if (!root) return;
 
-  let books = loadBooks();
+  const state = { books: loadBooks() };
 
   function render() {
-    root.innerHTML = bookshelfHTML({ books });
+    root.innerHTML = bookshelfHTML({ books: state.books });
+  }
+
+  function upsert(book) {
+    const idx = state.books.findIndex(b => b.id === book.id);
+    if (idx >= 0) state.books[idx] = book;
+    else state.books.unshift(book);
+    saveBooks(state.books);
+    render();
+  }
+
+  function remove(id) {
+    state.books = state.books.filter(b => b.id !== id);
+    saveBooks(state.books);
+    render();
   }
 
   render();
@@ -31,57 +49,46 @@ export function mountBookshelf(root) {
     if (!btn) return;
 
     const action = btn.dataset.action;
-    const item = e.target.closest('.bookItem');
-    const id = item?.dataset?.bookId;
 
     if (action === 'newBook') {
-      const now = new Date().toISOString();
+      const now = Date.now();
       const book = {
-        id: newId(),
+        id: uid(),
         title: '我的新書',
         status: 'draft',
-        updatedAt: now,
-
-        // editor v1 fields
-        inspiration: '',
-        draft: '',
-        content: '',
-
-        // editor v1: custom command library per-user (global), kept elsewhere
+        createdAt: now,
+        updatedAt: now
       };
-
-      books = [book, ...books];
-      saveBooks(books);
-      render();
+      upsert(book);
+      // 新增後直接打開
+      location.hash = `#/edit/${book.id}`;
       return;
     }
 
+    const item = e.target.closest('.bookItem');
+    const id = item?.dataset?.bookId;
     if (!id) return;
 
+    const book = state.books.find(b => b.id === id);
+    if (!book) return;
+
     if (action === 'toggleStatus') {
-      books = books.map(b => {
-        if (b.id !== id) return b;
-        const next = (b.status === 'published') ? 'draft' : 'published';
-        return { ...b, status: next, updatedAt: new Date().toISOString() };
+      const now = Date.now();
+      upsert({
+        ...book,
+        status: book.status === 'published' ? 'draft' : 'published',
+        updatedAt: now
       });
-      saveBooks(books);
-      render();
-      return;
-    }
-
-    if (action === 'delete') {
-      const b = books.find(x => x.id === id);
-      const ok = confirm(`確定刪除「${b?.title || '（未命名）'}」？`);
-      if (!ok) return;
-
-      books = books.filter(b => b.id !== id);
-      saveBooks(books);
-      render();
       return;
     }
 
     if (action === 'open') {
-      location.hash = `#/book/${encodeURIComponent(id)}`;
+      location.hash = `#/edit/${id}`;
+      return;
+    }
+
+    if (action === 'delete') {
+      if (confirm('確定刪除此書？（本機資料會移除）')) remove(id);
       return;
     }
   };
