@@ -1,740 +1,277 @@
 :root{
   --bg:#0b1411;
-  --panel:#0f1c17;
-  --card:#12241d;
-  --text:#eaf3ee;
-  --muted:#b7c7bf;
-  --line:rgba(255,255,255,.10);
-  --shadow: 0 14px 40px rgba(0,0,0,.35);
-  --r: 18px;
+  --card:#0f1d18;
+  --card2:#10231c;
+  --text:#e9f3ef;
+  --muted:#b9c8c2;
+  --line:rgba(255,255,255,.08);
+  --accent:#47c38b;
+  --danger:#ff5c5c;
+  --shadow:0 10px 25px rgba(0,0,0,.35);
 }
-
-*{ box-sizing:border-box; }
-html,body{ height:100%; }
+*{box-sizing:border-box}
+html,body{height:100%}
 body{
   margin:0;
-  font-family: system-ui, -apple-system, "Noto Sans TC", Segoe UI, Roboto, Arial, sans-serif;
-  background: radial-gradient(1200px 800px at 20% 0%, rgba(90,170,130,.10), transparent 60%),
-              radial-gradient(1000px 700px at 90% 10%, rgba(170,120,80,.10), transparent 55%),
-              var(--bg);
+  background:radial-gradient(1200px 600px at 20% -10%, rgba(71,195,139,.18), transparent 60%),
+             radial-gradient(900px 500px at 90% 10%, rgba(71,195,139,.10), transparent 55%),
+             var(--bg);
   color:var(--text);
+  font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial,
+               "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", sans-serif;
 }
 
 .topbar{
-  position: sticky;
-  top: 0;
-  z-index: 10;
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  padding: 14px 16px;
-  border-bottom: 1px solid var(--line);
+  position:sticky; top:0; z-index:50;
+  display:flex; align-items:center; justify-content:space-between;
+  padding:12px 14px;
+  background:rgba(11,20,17,.78);
+  border-bottom:1px solid var(--line);
   backdrop-filter: blur(10px);
-  background: rgba(11,20,17,.70);
 }
-
-.brandTitle{ font-weight: 800; letter-spacing: .3px; font-size: 16px; }
-.brandSub{ margin-top: 2px; color: var(--muted); font-size: 12px; }
-.actions{ display:flex; gap:10px; }
-
-.wrap{ max-width: 980px; margin: 0 auto; padding: 18px 16px 40px; }
-
-.card{
-  background: linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.02));
-  border: 1px solid var(--line);
-  border-radius: var(--r);
-  box-shadow: var(--shadow);
-  padding: 18px;
+.brand{min-width:0}
+.brand .title{font-weight:800; letter-spacing:.2px}
+.brand .sub{
+  margin-top:2px;
+  font-size:12px;
+  color:var(--muted);
+  writing-mode: horizontal-tb !important;
+  text-orientation: mixed !important;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
 }
+.topActions{display:flex; gap:8px; flex-shrink:0}
 
-.h2{ margin: 0 0 10px; font-size: 18px; }
-.p{ margin: 0 0 12px; color: var(--muted); line-height: 1.7; }
-.hint{
-  margin-top: 12px;
-  padding: 12px;
-  border-radius: 14px;
-  border: 1px dashed rgba(255,255,255,.18);
-  color: var(--muted);
-  background: rgba(0,0,0,.10);
-  line-height: 1.7;
-}
+.app{padding:14px; max-width:1100px; margin:0 auto}
 
 /* Buttons */
 .btn{
-  appearance:none;
-  border: 1px solid rgba(255,255,255,.16);
-  background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.03));
-  color: var(--text);
-  padding: 10px 12px;
-  border-radius: 14px;
-  cursor:pointer;
-  font-weight: 700;
-  letter-spacing: .2px;
-  transition: transform .08s ease, border-color .2s ease;
-}
-.btn:hover{ border-color: rgba(255,255,255,.26); }
-.btn:active{ transform: translateY(1px); }
-.btn.ghost{ background: transparent; border-color: rgba(255,255,255,.14); }
-
-/* Sound dock */
-.sounddock{ margin-top: 14px; }
-.sounddockInner{
-  display:flex;
-  gap:10px;
-  align-items:center;
-  flex-wrap:wrap;
-  padding: 12px;
-  border-radius: 16px;
-  border: 1px solid rgba(255,255,255,.12);
-  background: rgba(0,0,0,.10);
-}
-.soundHint{ color: rgba(234,243,238,.70); font-size: 12px; }
-
-/* Chips */
-.chips{ display:flex; flex-wrap:wrap; gap: 8px; }
-.chip{
-  border: 1px solid rgba(255,255,255,.14);
-  background: rgba(0,0,0,.12);
-  color: var(--text);
-  border-radius: 999px;
-  padding: 8px 10px;
-  cursor:pointer;
-  font-weight: 700;
-  font-size: 12px;
-}
-.chip.active{ border-color: rgba(255,255,255,.30); background: rgba(90,170,130,.16); }
-
-/* Dialog */
-.dialog{
-  width: min(940px, calc(100vw - 24px));
-  border: 1px solid rgba(255,255,255,.16);
-  background: rgba(15,28,23,.92);
-  backdrop-filter: blur(10px);
-  border-radius: 22px;
-  box-shadow: var(--shadow);
-  color: var(--text);
-  padding: 0;
-}
-.dialog::backdrop{ background: rgba(0,0,0,.55); }
-.dialogInner{ margin:0; padding:0; }
-.dialogHead{
-  display:flex;
-  align-items:flex-start;
-  justify-content:space-between;
-  gap: 10px;
-  padding: 16px 16px 10px;
-  border-bottom: 1px solid var(--line);
-}
-.dialogTitle{ font-size: 16px; font-weight: 900; }
-.dialogSub{ margin-top: 4px; font-size: 12px; color: var(--muted); }
-.iconBtn{
-  border: 1px solid rgba(255,255,255,.14);
-  background: transparent;
-  color: var(--text);
-  border-radius: 12px;
-  padding: 8px 10px;
+  appearance:none; border:1px solid rgba(255,255,255,.12);
+  background:linear-gradient(180deg, rgba(71,195,139,.22), rgba(71,195,139,.08));
+  color:var(--text);
+  padding:10px 12px;
+  border-radius:12px;
+  font-weight:700;
+  letter-spacing:.2px;
   cursor:pointer;
 }
-.dialogBody{ padding: 14px 16px 10px; }
-.dialogFoot{ padding: 12px 16px 16px; display:flex; justify-content:flex-end; border-top: 1px solid var(--line); }
-
-.field{ margin-bottom: 14px; }
-.label{ display:block; font-size: 12px; color: var(--muted); margin: 0 0 8px; }
-.row{ display:flex; gap: 10px; align-items:center; }
-.input, .textarea{
-  width:100%;
-  border: 1px solid rgba(255,255,255,.14);
-  background: rgba(0,0,0,.15);
-  color: var(--text);
-  border-radius: 14px;
-  padding: 10px 12px;
-  outline: none;
+.btn:hover{border-color: rgba(71,195,139,.45)}
+.btn:active{transform: translateY(1px)}
+.btn.ghost{
+  background:rgba(255,255,255,.04);
 }
-.textarea{ resize: vertical; }
-.mini{ margin-top: 8px; font-size: 12px; color: rgba(234,243,238,.75); }
-.hr{ border:0; border-top: 1px solid var(--line); margin: 14px 0; }
+.btn.small{padding:8px 10px; border-radius:10px; font-size:13px}
+.btn.danger{background:rgba(255,92,92,.14); border-color:rgba(255,92,92,.25)}
 
-/* Toast */
-.toast{
-  position: fixed;
-  left: 50%;
-  bottom: 16px;
-  transform: translateX(-50%);
-  background: rgba(0,0,0,.70);
-  border: 1px solid rgba(255,255,255,.14);
-  color: var(--text);
-  padding: 10px 12px;
-  border-radius: 14px;
-  box-shadow: var(--shadow);
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity .2s ease;
-}
-.toast.show{ opacity: 1; }
-/* ===== Bookshelf UI (append) ===== */
-#app{ padding:16px; max-width:980px; margin:0 auto; }
-
+/* Panels */
 .panel{
-  border:1px solid rgba(255,255,255,.12);
+  background:linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.03));
+  border:1px solid var(--line);
   border-radius:18px;
-  padding:16px;
-  background: rgba(255,255,255,.03);
+  box-shadow: var(--shadow);
+  overflow:hidden;
 }
-
 .panelHead{
-  display:flex;
-  align-items:flex-end;
-  justify-content:space-between;
+  display:flex; align-items:flex-start; justify-content:space-between;
   gap:12px;
-  margin-bottom:12px;
+  padding:14px;
+  border-bottom:1px solid var(--line);
+  background:rgba(255,255,255,.03);
 }
+.h2{font-weight:900; font-size:18px}
+.sub{margin-top:4px; color:var(--muted); font-size:13px; line-height:1.35}
+.panelActions{display:flex; gap:8px; flex-wrap:wrap; justify-content:flex-end}
 
-.h2{ font-size:18px; margin:0; font-weight:800; }
-.sub{ opacity:.75; font-size:12px; margin-top:6px; }
-
-.list{ display:flex; flex-direction:column; gap:10px; }
-
+.list{padding:10px 14px 14px}
 .bookItem{
-  display:flex;
-  justify-content:space-between;
-  gap:12px;
+  display:flex; align-items:center; justify-content:space-between;
+  gap:10px;
   padding:12px;
-  border:1px solid rgba(255,255,255,.10);
-  border-radius:16px;
-  background: rgba(0,0,0,.12);
+  border:1px solid var(--line);
+  border-radius:14px;
+  background:rgba(0,0,0,.18);
 }
-
-.bookTitle{ font-weight:800; }
-.bookMeta{ margin-top:6px; display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
-.metaTxt{ font-size:12px; opacity:.7; }
-
+.bookItem + .bookItem{margin-top:10px}
+.bookMain{min-width:0}
+.bookTitle{font-weight:900; font-size:16px; line-height:1.25}
+.bookMeta{margin-top:6px; display:flex; gap:10px; align-items:center; flex-wrap:wrap}
+.metaTxt{color:var(--muted); font-size:12px}
 .pill{
-  font-size:12px;
+  display:inline-flex; align-items:center; gap:6px;
+  border:1px solid rgba(255,255,255,.12);
   padding:4px 10px;
   border-radius:999px;
-  border:1px solid rgba(255,255,255,.16);
-  opacity:.9;
+  font-size:12px;
+  color:var(--muted);
 }
-.pill.ok{ background: rgba(90,170,130,.18); }
+.pill.ok{border-color: rgba(71,195,139,.35); color: rgba(71,195,139,.95)}
+.bookActions{display:flex; gap:8px; flex-wrap:wrap; justify-content:flex-end}
 
-.bookActions{ display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
+/* Editor */
+.grid2{
+  display:grid;
+  grid-template-columns: 280px 1fr;
+  gap:12px;
+}
+.side{
+  display:flex; flex-direction:column; gap:10px;
+}
+.card{
+  border:1px solid var(--line);
+  background:rgba(0,0,0,.18);
+  border-radius:16px;
+  padding:12px;
+}
+.cardTitle{font-weight:900}
+.kv{margin-top:8px; color:var(--muted); font-size:13px; line-height:1.45}
 
-.btn.small{ padding:8px 10px; font-size:12px; border-radius:12px; }
-.btn.danger{ border-color: rgba(255,120,120,.28); }
-.empty{ padding:18px; text-align:center; opacity:.85; }
-.emptyTitle{ font-weight:800; margin-bottom:6px; }
-.emptySub{ font-size:12px; opacity:.75; }
-/* ===== Fix: Button wrapping / word breaking ===== */
-.btn,
-button.btn {
-  white-space: nowrap;      /* 不要讓「Ai協作」被拆成 Ai協 / 作 */
-  word-break: keep-all;     /* 中文不要被硬拆字 */
-  overflow-wrap: normal;    /* 不要任意斷行 */
-  line-height: 1.2;
+.tabs{
+  display:flex; gap:8px; flex-wrap:wrap;
 }
-
-.topActions,
-.panelActions {
-  display: flex;
-  gap: 12px;
-  align-items: center;
-}
-
-.topActions .btn,
-.panelActions .btn {
-  min-width: 140px;         /* 讓「＋新增一本書」有足夠寬度 */
-  padding: 14px 16px;
-  border-radius: 18px;
-}
-
-/* 手機螢幕較窄時，按鈕改成「自動橫排換行」，但每顆按鈕內不拆字 */
-@media (max-width: 420px) {
-  .topActions,
-  .panelActions {
-    flex-wrap: wrap;
-    justify-content: flex-end;
-  }
-  .topActions .btn,
-  .panelActions .btn {
-    min-width: 132px;
-  }
-}
-/* ===== Patch: prevent ugly line breaks in buttons ===== */
-#btnAi,
-.btn {
-  white-space: nowrap;      /* 不換行 */
-  word-break: keep-all;     /* 中文/英文都盡量不要硬拆 */
-  overflow-wrap: normal;    /* 不強制斷字 */
-}
-/* ===== Patch: topbar buttons no-wrap + nicer sizing ===== */
-#btnAi,
-.btn{
-  white-space: nowrap;
-  word-break: keep-all;
-  overflow-wrap: normal;
-}
-
-/* AI button: stable and pretty */
-#btnAi{
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 10px 14px;
-  min-width: 92px;
-  border-radius: 14px;
-  border: 1px solid rgba(255,255,255,.28);
-  background: rgba(255,255,255,.08);
-  color: rgba(255,255,255,.92);
-  box-shadow: 0 10px 24px rgba(0,0,0,.25);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-}
-
-#btnAi:active{ transform: translateY(1px); }
-/* ===== AI modal ===== */
-.modalBackdrop{
-  position: fixed; inset: 0;
-  background: rgba(0,0,0,.45);
-  display: flex;
-  align-items: flex-end;
-  justify-content: center;
-  padding: 16px;
-  z-index: 9999;
-}
-.modalSheet{
-  width: min(560px, 100%);
-  border-radius: 22px;
-  border: 1px solid rgba(255,255,255,.18);
-  background: rgba(10,16,14,.88);
-  box-shadow: 0 24px 60px rgba(0,0,0,.55);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
-  overflow: hidden;
-}
-.modalHead{
-  display:flex; align-items:center; justify-content:space-between;
-  padding: 14px 14px 10px;
-  border-bottom: 1px solid rgba(255,255,255,.10);
-}
-.modalTitle{ font-size: 18px; font-weight: 800; letter-spacing:.5px; }
-.modalBody{ padding: 14px; }
-.subtle{ opacity: .9; font-size: 14px; margin-bottom: 10px; }
-
-.seg{ display:flex; gap:10px; flex-wrap: wrap; margin-bottom: 12px; }
-.panel.mini{ padding: 12px; border-radius: 18px; border: 1px solid rgba(255,255,255,.10); background: rgba(255,255,255,.05); }
-.panel .h3{ font-weight:800; margin-bottom: 8px; }
-.ta{
-  width: 100%;
-  border-radius: 14px;
-  border: 1px solid rgba(255,255,255,.16);
-  background: rgba(0,0,0,.18);
-  color: rgba(255,255,255,.92);
-  padding: 10px 12px;
-  outline: none;
-}
-.row{ display:flex; gap:10px; margin-top: 10px; flex-wrap: wrap; }
-.hint{ opacity:.75; font-size: 13px; margin-top: 8px; line-height: 1.35; }
-/* ===== Editor v1 (minimal) ===== */
-#btnAi, .btn { white-space: nowrap; word-break: keep-all; overflow-wrap: normal; }
-
-.ed{ padding: 14px; }
-.edTop{ display:flex; gap:10px; align-items:center; justify-content:space-between; }
-.edTitleWrap{ flex:1; min-width: 0; }
-.edTitle{
-  width:100%;
-  border-radius: 14px;
-  border: 1px solid rgba(255,255,255,.14);
-  background: rgba(255,255,255,.06);
-  color: rgba(255,255,255,.95);
-  padding: 10px 12px;
-  font-weight: 800;
-  outline: none;
-}
-.edMeta{ display:flex; gap:10px; align-items:center; margin-top: 6px; }
-.edTopBtns{ display:flex; gap:10px; align-items:center; }
-
-.edTabs{ display:flex; gap:10px; flex-wrap: wrap; margin-top: 12px; }
 .tab{
-  padding: 10px 12px;
-  border-radius: 999px;
-  border: 1px solid rgba(255,255,255,.14);
-  background: rgba(255,255,255,.06);
-  color: rgba(255,255,255,.9);
-  white-space: nowrap;
+  padding:8px 10px;
+  border-radius:999px;
+  border:1px solid rgba(255,255,255,.12);
+  background:rgba(255,255,255,.04);
+  color:var(--text);
+  font-weight:800;
+  cursor:pointer;
 }
-.tab.on{ background: rgba(255,255,255,.14); border-color: rgba(255,255,255,.22); }
+.tab[aria-selected="true"]{
+  border-color: rgba(71,195,139,.45);
+  background:rgba(71,195,139,.12);
+}
 
-.edBody{ margin-top: 12px; }
-.edTA{
+.textarea{
   width:100%;
-  min-height: 46vh;
-  border-radius: 16px;
-  border: 1px solid rgba(255,255,255,.14);
-  background: rgba(0,0,0,.16);
-  color: rgba(255,255,255,.95);
-  padding: 12px;
-  outline: none;
-  line-height: 1.6;
-}
-.edFooter{ display:flex; gap:12px; align-items:center; margin-top: 10px; flex-wrap: wrap; }
-.hint{ opacity:.75; font-size: 13px; }
-
-/* ===== Bottom Sheet (More) ===== */
-.sheetBackdrop{
-  position: fixed; inset: 0;
-  background: rgba(0,0,0,.45);
-  display:flex; align-items:flex-end; justify-content:center;
-  padding: 14px;
-  z-index: 9998;
-}
-.sheet{
-  width: min(620px, 100%);
-  border-radius: 22px;
-  border: 1px solid rgba(255,255,255,.18);
-  background: rgba(10,16,14,.92);
-  box-shadow: 0 24px 60px rgba(0,0,0,.55);
-  overflow: hidden;
-}
-.sheetHead{
-  display:flex; align-items:center; justify-content:space-between;
-  padding: 12px 14px;
-  border-bottom: 1px solid rgba(255,255,255,.10);
-}
-.sheetTitle{ font-size: 18px; font-weight: 800; }
-.sheetBody{ padding: 14px; }
-.sheetGrid{ display:grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-.note{
-  margin-top: 12px;
-  padding: 12px;
-  border-radius: 18px;
-  border: 1px solid rgba(255,255,255,.10);
-  background: rgba(255,255,255,.05);
-}
-.noteTitle{ font-weight: 800; margin-bottom: 6px; }
-.noteTxt{ opacity:.85; font-size: 13px; line-height: 1.4; }
-
-/* ===== AI Sheet ===== */
-.aiBackdrop{
-  position: fixed; inset: 0;
-  background: rgba(0,0,0,.45);
-  display:flex; align-items:flex-end; justify-content:center;
-  padding: 14px;
-  z-index: 9999;
-}
-.aiSheet{
-  width: min(620px, 100%);
-  border-radius: 22px;
-  border: 1px solid rgba(255,255,255,.18);
-  background: rgba(10,16,14,.92);
-  box-shadow: 0 24px 60px rgba(0,0,0,.55);
-  overflow: hidden;
-}
-.aiHead{
-  display:flex; align-items:center; justify-content:space-between;
-  padding: 12px 14px;
-  border-bottom: 1px solid rgba(255,255,255,.10);
-}
-.aiTitle{ font-size: 18px; font-weight: 800; }
-.aiBody{ padding: 14px; display:flex; flex-direction:column; gap: 12px; }
-
-.aiRow{ display:flex; gap:10px; align-items:flex-start; flex-wrap: wrap; }
-.aiLabel{ opacity:.8; font-size: 13px; padding-top: 8px; }
-.aiPills{ display:flex; gap:10px; flex-wrap: wrap; }
-
-.aiBlock{
-  padding: 12px;
-  border-radius: 18px;
-  border: 1px solid rgba(255,255,255,.10);
-  background: rgba(255,255,255,.05);
-}
-.aiSub{ font-weight: 800; margin-bottom: 8px; }
-.aiTA{
-  width:100%;
-  border-radius: 14px;
-  border: 1px solid rgba(255,255,255,.16);
-  background: rgba(0,0,0,.18);
-  color: rgba(255,255,255,.92);
-  padding: 10px 12px;
-  outline: none;
-}
-.aiBtns{ display:flex; gap:10px; flex-wrap: wrap; margin-top: 10px; }
-.aiHint{ opacity:.75; font-size: 13px; margin-top: 8px; line-height: 1.35; }
-
-.aiCmdRow{ display:flex; gap:10px; align-items:center; margin-bottom: 10px; }
-.aiInput{
-  flex:1; min-width: 0;
-  border-radius: 14px;
-  border: 1px solid rgba(255,255,255,.14);
-  background: rgba(255,255,255,.06);
-  color: rgba(255,255,255,.92);
-  padding: 10px 12px;
-  outline: none;
-}
-.aiCmdList{ display:flex; flex-direction:column; gap:10px; }
-.aiCmdItem{
-  display:flex; gap:10px; justify-content:space-between;
-  padding: 10px;
-  border-radius: 16px;
-  border: 1px solid rgba(255,255,255,.10);
-  background: rgba(0,0,0,.12);
-}
-.aiCmdMain{ flex:1; min-width: 0; }
-.aiCmdTitle{ font-weight: 800; margin-bottom: 4px; }
-.aiCmdPrompt{ opacity:.85; font-size: 13px; line-height: 1.35; }
-.aiCmdBtns{ display:flex; gap:8px; align-items:flex-start; }
-
-@media (max-width: 420px){
-  .sheetGrid{ grid-template-columns: 1fr; }
-}
-/* ===== AI Drawer Scroll Fix (paste at bottom) ===== */
-
-/* 鎖背景，但不要鎖死抽屜內的滾動 */
-html.aiOpen,
-body.aiOpen {
-  overflow: hidden;
-  height: 100%;
-}
-
-#aiHost {
-  position: fixed;
-  inset: 0;
-  z-index: 9999;
-  pointer-events: none; /* 讓 backdrop / drawer 自己接手 */
-}
-
-.aiBackdrop {
-  position: absolute;
-  inset: 0;
-  background: rgba(0,0,0,.35);
-  backdrop-filter: blur(2px);
-  pointer-events: auto;
-}
-
-.aiDrawer {
-  position: absolute;
-  left: 12px;
-  right: 12px;
-  bottom: 12px;
-  top: 72px;                 /* ✅ 讓抽屜有高度，才能內滾 */
-  border-radius: 18px;
-  pointer-events: auto;
-
-  display: flex;             /* ✅ 讓 aiBody 吃剩餘高度 */
-  flex-direction: column;
-
-  overflow: hidden;          /* 外框不滾，內容滾 */
-}
-
-.aiHead { padding: 14px 14px 8px; display:flex; align-items:center; justify-content:space-between; gap:10px; }
-.aiHeadTitle { font-weight: 800; font-size: 18px; }
-.aiHeadSub { opacity: .8; font-size: 12px; margin-top: 2px; }
-
-.aiToolbar { padding: 10px 14px 10px; display:flex; gap:10px; }
-
-/* ✅ 這行是核心：抽屜內容可滾 */
-.aiBody {
-  flex: 1;
-  overflow-y: auto;
-  -webkit-overflow-scrolling: touch; /* iOS */
-  overscroll-behavior: contain;
-  touch-action: pan-y;
-  padding: 0 14px 14px;
-}
-
-/* 卡片 */
-.aiCard {
-  padding: 14px;
-  border-radius: 16px;
-  margin-bottom: 12px;
-}
-
-.aiCardTitle { font-weight: 800; font-size: 18px; margin-bottom: 6px; }
-.aiCardDesc { opacity: .9; line-height: 1.5; }
-
-.aiCardActions { display:flex; gap:10px; margin-top: 10px; }
-
-/* empty */
-.aiEmpty { padding: 18px 6px; text-align: center; opacity: .9; }
-.aiEmptyTitle { font-weight: 800; font-size: 16px; margin-bottom: 6px; }
-.aiEmptySub { font-size: 13px; opacity: .85; }
-
-/* toast */
-.toast {
-  position: fixed;
-  left: 50%;
-  bottom: 22px;
-  transform: translateX(-50%);
-  padding: 10px 14px;
-  border-radius: 999px;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity .18s ease;
-  z-index: 10000;
-}
-.toast.show { opacity: 1; }
-/* ===== Editor v1 Minimal (append to bottom) ===== */
-.edWrap { padding: 14px 14px 18px; max-width: 920px; margin: 0 auto; }
-.edTop { display:flex; gap:10px; align-items:flex-start; }
-.edTopMid { flex:1; min-width: 0; }
-.edTitleRow { display:flex; gap:10px; align-items:center; }
-.edTitle {
-  width: 100%;
-  padding: 10px 12px;
-  border-radius: 14px;
-  border: 1px solid rgba(255,255,255,.12);
-  background: rgba(0,0,0,.15);
-  color: inherit;
-  font-size: 18px;
-  font-weight: 800;
-}
-.edHint { opacity: .8; font-size: 12px; margin-top: 6px; }
-
-.edTabs { display:flex; gap:8px; align-items:center; margin-top: 12px; }
-.edTabsSpacer { flex:1; }
-.edTab {
-  padding: 8px 12px;
-  border-radius: 999px;
-  border: 1px solid rgba(255,255,255,.12);
-  background: rgba(0,0,0,.10);
-  color: inherit;
-  font-weight: 700;
-}
-.edTab.on { background: rgba(255,255,255,.10); }
-
-.edBody { margin-top: 10px; }
-.edPanel { display:none; }
-.edPanel.on { display:block; }
-
-.edArea{
-  width: 100%;
-  min-height: 56vh;
+  min-height: 360px;
   resize: vertical;
-  padding: 14px;
-  border-radius: 16px;
-  border: 1px solid rgba(255,255,255,.12);
-  background: rgba(0,0,0,.12);
-  color: inherit;
-  line-height: 1.75;
-  font-size: 16px;
+  padding:12px;
+  border-radius:16px;
+  border:1px solid rgba(255,255,255,.12);
+  background:rgba(0,0,0,.20);
+  color:var(--text);
+  outline:none;
+  line-height:1.65;
+  font-size:15px;
+}
+.textarea:focus{border-color: rgba(71,195,139,.55)}
+
+.row{display:flex; gap:8px; flex-wrap:wrap; align-items:center}
+.muted{color:var(--muted)}
+
+/* Drawer */
+.drawerMask{
+  position:fixed; inset:0;
+  background:rgba(0,0,0,.55);
+  display:none;
+  z-index:80;
+}
+.drawerMask.show{display:block}
+.drawer{
+  position:fixed; left:0; right:0; bottom:0;
+  z-index:90;
+  transform: translateY(105%);
+  transition: transform .22s ease;
+  background:rgba(11,20,17,.92);
+  border-top:1px solid var(--line);
+  backdrop-filter: blur(12px);
+  border-radius:18px 18px 0 0;
+  box-shadow: 0 -14px 40px rgba(0,0,0,.45);
+  max-height: 86vh;
+  overflow:auto;
+}
+.drawer.show{transform: translateY(0)}
+.drawerInner{padding:14px}
+.drawerHandle{
+  width:46px; height:5px;
+  border-radius:99px;
+  background:rgba(255,255,255,.22);
+  margin:6px auto 10px;
+}
+.drawerTitle{font-weight:950; font-size:16px}
+.drawerSub{margin-top:4px; color:var(--muted); font-size:12px; line-height:1.35}
+
+.field{margin-top:12px}
+.fieldLabel{font-weight:900; margin-bottom:8px}
+.choices{display:flex; gap:8px; flex-wrap:wrap}
+.choice{
+  display:inline-flex; align-items:center; gap:8px;
+  padding:8px 10px;
+  border-radius:999px;
+  border:1px solid rgba(255,255,255,.12);
+  background:rgba(255,255,255,.04);
+  cursor:pointer;
+  user-select:none;
+}
+.choice input{accent-color: var(--accent)}
+
+.smallArea{
+  width:100%;
+  min-height: 90px;
+  resize: vertical;
+  padding:10px;
+  border-radius:14px;
+  border:1px solid rgba(255,255,255,.12);
+  background:rgba(0,0,0,.20);
+  color:var(--text);
+  outline:none;
+  line-height:1.55;
 }
 
-.edFooter{
-  display:flex;
-  justify-content: space-between;
-  align-items:center;
-  margin-top: 12px;
-  gap:10px;
-}
-.edSaved{ opacity: .85; font-size: 12px; }
-.edSaved.flash{ opacity: 1; transform: translateY(-1px); }
+.hr{height:1px; background:var(--line); margin:14px 0}
 
-/* 手機窄屏：頂部按鈕擠不下時換行 */
-@media (max-width: 420px) {
-  .edTop { flex-direction: column; }
-  .edTopRight { display:flex; gap:10px; width:100%; }
-  .edTopRight .btn { flex:1; }
+.toast{
+  position:fixed; left:50%; bottom:18px; transform:translateX(-50%);
+  background:rgba(0,0,0,.75);
+  border:1px solid rgba(255,255,255,.14);
+  color:var(--text);
+  padding:10px 12px;
+  border-radius:999px;
+  font-weight:800;
+  opacity:0;
+  pointer-events:none;
+  transition: opacity .18s ease;
+  z-index:200;
 }
-/* ===== Editor page v1 patch: fix left layout (append at end) ===== */
-.panelHead{
-  align-items: flex-start;
-}
+.toast.show{opacity:1}
 
-.panelHead > div:first-child{
-  min-width: 0;
+@media (max-width: 860px){
+  .grid2{grid-template-columns: 1fr;}
 }
 
-.panelHead .h2{
-  white-space: normal;
+/* iOS safe area */
+@supports (padding: max(0px)){
+  .drawerInner{padding-bottom: max(14px, env(safe-area-inset-bottom))}
 }
 
-.panelHead .sub{
-  /* 防止被全站 vertical/奇怪換行影響 */
-  writing-mode: horizontal-tb !important;
-  text-orientation: mixed !important;
-  white-space: normal !important;
-  word-break: keep-all;
-  overflow-wrap: anywhere;
-  line-height: 1.35;
+/* --- AI Drawer (v1.1) overrides --- */
+.drawer{position:fixed; inset:0; z-index:90; display:none; transform:none; background:transparent; box-shadow:none; border:none; backdrop-filter:none; border-radius:0; max-height:none; overflow:visible;}
+.drawer.open{display:block;}
+.drawerOverlay{position:absolute; inset:0; background:rgba(0,0,0,.55);}
+.drawerInner{
+  position:absolute; left:0; right:0; bottom:0;
+  max-height:86vh; overflow:auto;
+  background:rgba(11,20,17,.92);
+  border-top:1px solid var(--line);
+  backdrop-filter: blur(12px);
+  border-radius:18px 18px 0 0;
+  box-shadow: 0 -14px 40px rgba(0,0,0,.45);
+  padding:14px;
+  padding-bottom: max(14px, env(safe-area-inset-bottom));
 }
-
-/* 讓編輯頁頭部左右更像一排，手機不會擠爆 */
-@media (max-width: 520px){
-  .panelHead{
-    display: flex;
-    flex-direction: row;
-    gap: 12px;
-  }
-  .panelHead .panelActions{
-    justify-content: flex-end;
-    flex-wrap: wrap;
-  }
-}
-/* 強制所有 sub 都水平（若你全站有 vertical 模式） */
-.sub{ writing-mode: horizontal-tb; }
-/* ===== Editor page hard patch (scope by Export/Import buttons) ===== */
-/* 只要 #app 裡面出現「匯出/匯入」按鈕，就視為編輯頁 */
-#app:has(button[data-action="export"]),
-#app:has(button[data-action="import"]) {
-  overflow-x: hidden;
-}
-
-#app:has(button[data-action="export"]) .panelHead,
-#app:has(button[data-action="import"]) .panelHead{
-  display: flex !important;
-  flex-direction: row !important;
-  align-items: flex-start !important;
-  justify-content: space-between !important;
-  gap: 12px !important;
-  flex-wrap: nowrap !important;
-}
-
-/* 左邊整塊：不要被壓窄 */
-#app:has(button[data-action="export"]) .panelHead > div:first-child,
-#app:has(button[data-action="import"]) .panelHead > div:first-child{
-  flex: 1 1 auto !important;
-  min-width: 180px !important;
-  max-width: 70% !important;
-}
-
-/* 右邊按鈕區：固定在右邊，不把左邊擠爛 */
-#app:has(button[data-action="export"]) .panelHead .panelActions,
-#app:has(button[data-action="import"]) .panelHead .panelActions{
-  flex: 0 0 auto !important;
-  display: flex !important;
-  flex-direction: column !important;
-  gap: 12px !important;
-  align-items: flex-end !important;
-}
-
-/* 左邊文字：禁止「一字一行」 */
-#app:has(button[data-action="export"]) .panelHead .h2,
-#app:has(button[data-action="import"]) .panelHead .h2{
-  white-space: nowrap !important;
-}
-
-#app:has(button[data-action="export"]) .panelHead .sub,
-#app:has(button[data-action="import"]) .panelHead .sub{
-  white-space: normal !important;
-  word-break: keep-all !important;
-  overflow-wrap: anywhere !important;
-  writing-mode: horizontal-tb !important;
-  text-orientation: mixed !important;
-}
-
-/* 小螢幕：允許按鈕換行，但左邊不要垮 */
-@media (max-width: 520px){
-  #app:has(button[data-action="export"]) .panelHead,
-  #app:has(button[data-action="import"]) .panelHead{
-    flex-wrap: wrap !important;
-  }
-  #app:has(button[data-action="export"]) .panelHead > div:first-child,
-  #app:has(button[data-action="import"]) .panelHead > div:first-child{
-    max-width: 100% !important;
-    min-width: 0 !important;
-  }
-  #app:has(button[data-action="export"]) .panelHead .panelActions,
-  #app:has(button[data-action="import"]) .panelHead .panelActions{
-    width: 100% !important;
-    align-items: stretch !important;
-  }
-}
+.drawerHead{display:flex; align-items:flex-start; justify-content:space-between; gap:10px;}
+.drawerTitle{font-weight:950; font-size:16px}
+.drawerSub{margin-top:4px; color:var(--muted); font-size:12px; line-height:1.35}
+.drawerSection{margin-top:12px; padding-top:12px; border-top:1px solid rgba(255,255,255,.06)}
+.drawerSection .k{font-weight:900; margin-bottom:8px}
+.pillGroup{display:flex; gap:8px; flex-wrap:wrap}
+.pillRadio{display:inline-flex; align-items:center; gap:8px; padding:8px 10px; border-radius:999px; border:1px solid rgba(255,255,255,.12); background:rgba(255,255,255,.04); cursor:pointer; user-select:none;}
+.pillRadio input{accent-color: var(--accent)}
+.promptBox,.resultBox{width:100%; min-height:90px; resize:vertical; padding:10px; border-radius:14px; border:1px solid rgba(255,255,255,.12); background:rgba(0,0,0,.20); color:var(--text); outline:none; line-height:1.55;}
+.resultBox{min-height:140px}
+.hint{margin-top:8px; color:var(--muted); font-size:12px; line-height:1.4}
+.libItem{display:flex; gap:10px; justify-content:space-between; align-items:center; padding:10px; border:1px solid rgba(255,255,255,.10); border-radius:14px; background:rgba(255,255,255,.03)}
+.libTitle{font-weight:900}
+.libSub{color:var(--muted); font-size:12px; margin-top:4px}
