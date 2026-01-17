@@ -486,3 +486,89 @@ button.btn {
 @media (max-width: 420px){
   .sheetGrid{ grid-template-columns: 1fr; }
 }
+/* ===== AI Drawer Scroll Fix (paste at bottom) ===== */
+
+/* 鎖背景，但不要鎖死抽屜內的滾動 */
+html.aiOpen,
+body.aiOpen {
+  overflow: hidden;
+  height: 100%;
+}
+
+#aiHost {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  pointer-events: none; /* 讓 backdrop / drawer 自己接手 */
+}
+
+.aiBackdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,.35);
+  backdrop-filter: blur(2px);
+  pointer-events: auto;
+}
+
+.aiDrawer {
+  position: absolute;
+  left: 12px;
+  right: 12px;
+  bottom: 12px;
+  top: 72px;                 /* ✅ 讓抽屜有高度，才能內滾 */
+  border-radius: 18px;
+  pointer-events: auto;
+
+  display: flex;             /* ✅ 讓 aiBody 吃剩餘高度 */
+  flex-direction: column;
+
+  overflow: hidden;          /* 外框不滾，內容滾 */
+}
+
+.aiHead { padding: 14px 14px 8px; display:flex; align-items:center; justify-content:space-between; gap:10px; }
+.aiHeadTitle { font-weight: 800; font-size: 18px; }
+.aiHeadSub { opacity: .8; font-size: 12px; margin-top: 2px; }
+
+.aiToolbar { padding: 10px 14px 10px; display:flex; gap:10px; }
+
+/* ✅ 這行是核心：抽屜內容可滾 */
+.aiBody {
+  flex: 1;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch; /* iOS */
+  overscroll-behavior: contain;
+  touch-action: pan-y;
+  padding: 0 14px 14px;
+}
+
+/* 卡片 */
+.aiCard {
+  padding: 14px;
+  border-radius: 16px;
+  margin-bottom: 12px;
+}
+
+.aiCardTitle { font-weight: 800; font-size: 18px; margin-bottom: 6px; }
+.aiCardDesc { opacity: .9; line-height: 1.5; }
+
+.aiCardActions { display:flex; gap:10px; margin-top: 10px; }
+
+/* empty */
+.aiEmpty { padding: 18px 6px; text-align: center; opacity: .9; }
+.aiEmptyTitle { font-weight: 800; font-size: 16px; margin-bottom: 6px; }
+.aiEmptySub { font-size: 13px; opacity: .85; }
+
+/* toast */
+.toast {
+  position: fixed;
+  left: 50%;
+  bottom: 22px;
+  transform: translateX(-50%);
+  padding: 10px 14px;
+  border-radius: 999px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .18s ease;
+  z-index: 10000;
+}
+.toast.show { opacity: 1; }
