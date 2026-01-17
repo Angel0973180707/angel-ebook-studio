@@ -122,30 +122,147 @@ export function renderEditor({ root, store, bookId, tab='draft', onNavigate, onT
   };
 
   const renderAI = () => {
-    const cmds = store.listCmds();
-    const cards = cmds.map(c => `
-      <div class="aiCard" data-cmd-id="${c.id}">
-        <div class="aiCardTitle">${escapeHTML(c.title)}</div>
-        <div class="aiCardSub">${escapeHTML(c.hint || '')}</div>
-        <div class="aiCardActions">
-          <button class="btn small primary" data-act="copyCmd" type="button">一鍵複製指令</button>
-          <button class="btn small ghost" data-act="saveNote" type="button">存到本書指派</button>
+    const groups = store.listCmdGroups();
+    const pins = store.listPins();
+    const all = store.listAllCmds();
+
+    const getCmd = (id) => all.find(c => c.id === id) || null;
+    const pinned = pins.map(getCmd).filter(Boolean);
+    const quickGroup = groups.find(g => g.id === 'quick');
+
+    const cardHTML = (c, extra='') => `
+      <div class="aiCard" data-cmd-id="${escapeHTML(c.id)}" data-source="${escapeHTML(c._source||'builtin')}">
+        <div class="aiCardTop">
+          <div>
+            <div class="aiCardTitle">${escapeHTML(c.title || '')}</div>
+            <div class="aiCardSub">${escapeHTML(c.hint || '')}</div>
+          </div>
+          <button class="pinBtn ${store.isPinned(c.id)?'on':''}" data-act="pin" type="button" title="釘選">★</button>
         </div>
+        <div class="aiCardActions">
+          <button class="btn small" data-act="preview" type="button">預覽</button>
+          <button class="btn small primary" data-act="copy" type="button">複製</button>
+          <button class="btn small ghost" data-act="saveNote" type="button">存到本書指派</button>
+          ${c._source==='mine' ? '<button class="btn small danger" data-act="deleteMy" type="button">刪除</button>' : ''}
+        </div>
+        ${extra}
       </div>
-    `).join('');
+    `;
+
+    const pinnedHTML = pinned.length
+      ? pinned.map(c => cardHTML(c, '<div class="tagRow"><span class="tag">已釘選</span></div>')).join('')
+      : `<div class="empty"><div class="emptyTitle">尚未釘選</div><div class="emptySub">把常用指令釘起來（最多 7 條）。</div></div>`;
+
+    const quickHTML = quickGroup
+      ? quickGroup.items.map(c => cardHTML(c)).join('')
+      : '';
+
+    const accordionHTML = groups
+      .filter(g => g.id !== 'quick' && g.id !== 'mine')
+      .map(g => {
+        const items = g.items.map(c => cardHTML(c)).join('');
+        return `
+          <details class="acc" ${g.id==='structure' ? 'open' : ''}>
+            <summary>
+              <span class="accTitle">${escapeHTML(g.title)}</span>
+              <span class="accHint">點開看指令</span>
+            </summary>
+            <div class="accBody">${items}</div>
+          </details>
+        `;
+      }).join('');
+
+    const myList = store.listMyCmds();
+    const myHTML = myList.length
+      ? myList.map(c => cardHTML({ ...c, _source:'mine' })).join('')
+      : `<div class="empty"><div class="emptyTitle">還沒有我的指令</div><div class="emptySub">你可以把臨時指派存成「我的指令」。</div></div>`;
 
     body.innerHTML = `
-      <div class="aiGrid">${cards}</div>
-      <div style="height:10px"></div>
-      <div class="aiCard">
-        <div class="aiCardTitle">本書 AI 指派（可自行改）</div>
-        <div class="aiCardSub">這裡放你臨時指派、待辦、或你要貼給 AI 的工作指令。會跟著這本書保存。</div>
-        <div style="margin-top:10px;">
-          <textarea class="textarea" id="aiNotes" placeholder="例如：把第三章改成更有留白、加上微科學但不炫技…">${escapeHTML(book.aiNotes || '')}</textarea>
-        </div>
-        <div class="aiCardActions">
-          <button class="btn small primary" id="btnCopyNotes" type="button">複製本書指派</button>
-        </div>
+      <div class="aiLayout">
+        <section class="aiCol">
+          <div class="panelBlock">
+            <div class="panelBlockHead">
+              <div>
+                <div class="h3">★ 釘選</div>
+                <div class="sub">最多 7 條，給自己一個順手的工作台。</div>
+              </div>
+            </div>
+            <div class="aiGrid">${pinnedHTML}</div>
+          </div>
+
+          <div class="panelBlock">
+            <div class="panelBlockHead">
+              <div>
+                <div class="h3">快速指令</div>
+                <div class="sub">最常用的 5 條，先放上來。</div>
+              </div>
+            </div>
+            <div class="aiGrid">${quickHTML}</div>
+          </div>
+
+          <div class="panelBlock">
+            <div class="panelBlockHead">
+              <div>
+                <div class="h3">指令庫</div>
+                <div class="sub">哲思／科學／教養／舒發／工具… 你要哪個角度就打開哪個。</div>
+              </div>
+              <div class="panelBlockActions">
+                <button class="btn small" id="btnExportAi" type="button">匯出指令庫</button>
+                <button class="btn small" id="btnImportAi" type="button">匯入指令庫</button>
+              </div>
+            </div>
+            ${accordionHTML}
+          </div>
+
+          <div class="panelBlock">
+            <div class="panelBlockHead">
+              <div>
+                <div class="h3">我的指令</div>
+                <div class="sub">你臨時指派的好句子，值得留下來。</div>
+              </div>
+            </div>
+            <div class="myCmdForm">
+              <input class="input" id="myTitle" placeholder="指令標題（例：第八章改成書稿）」 />
+              <input class="input" id="myHint" placeholder="一句提示（可空白）」 />
+              <textarea class="textarea" id="myPrompt" placeholder="貼上你要留存的指令內容…"></textarea>
+              <div class="rowEnd">
+                <button class="btn small" id="btnSaveMy" type="button">存成我的指令</button>
+                <button class="btn small ghost" id="btnClearMy" type="button">清空</button>
+              </div>
+            </div>
+            <div class="aiGrid">${myHTML}</div>
+          </div>
+        </section>
+
+        <aside class="aiSide">
+          <div class="panelBlock sticky">
+            <div class="panelBlockHead">
+              <div>
+                <div class="h3">指令預覽</div>
+                <div class="sub">點「預覽」會把草稿自動帶入。</div>
+              </div>
+              <div class="panelBlockActions">
+                <button class="btn small primary" id="btnCopyPreview" type="button">複製預覽</button>
+              </div>
+            </div>
+            <textarea class="textarea" id="aiPreview" placeholder="在左邊選一條指令，這裡會出現完整內容…"></textarea>
+            <div class="miniSub">會優先帶入「草稿」分頁的內容（若空白就提示你先貼內容）。</div>
+          </div>
+
+          <div class="panelBlock">
+            <div class="panelBlockHead">
+              <div>
+                <div class="h3">本書指派</div>
+                <div class="sub">臨時待辦／協作指令／你要貼給 AI 的工作內容（會跟著這本書保存）。</div>
+              </div>
+              <div class="panelBlockActions">
+                <button class="btn small" id="btnAppendPreview" type="button">把預覽加進來</button>
+                <button class="btn small primary" id="btnCopyNotes" type="button">複製本書指派</button>
+              </div>
+            </div>
+            <textarea class="textarea" id="aiNotes" placeholder="例如：把第三章改成更有留白、加上微科學但不炫技…">${escapeHTML(book.aiNotes || '')}</textarea>
+          </div>
+        </aside>
       </div>
     `;
   };
@@ -190,23 +307,56 @@ export function renderEditor({ root, store, bookId, tab='draft', onNavigate, onT
   if(activeTab === 'ai'){
     attachTextareaAutosave('#aiNotes', 'aiNotes');
 
+    const previewEl = () => root.querySelector('#aiPreview');
+
+    const buildMerged = (cmd) => {
+      const b = store.getBook(bookId);
+      const content = (b?.draft || '').trim() || '（請先到「草稿」分頁貼上內容）';
+      const base = String(cmd.prompt || cmd.template || '').trim();
+      if(base.includes('{{CONTENT}}')) return base.replaceAll('{{CONTENT}}', content);
+      return `${base}\n\n${content}`;
+    };
+
+    const setPreview = (text) => {
+      const el = previewEl();
+      if(!el) return;
+      el.value = text;
+      el.scrollTop = 0;
+    };
+
     body.addEventListener('click', async (e) => {
       const btn = e.target?.closest('button[data-act]');
       if(!btn) return;
       const card = btn.closest('.aiCard[data-cmd-id]');
       if(!card) return;
       const cmdId = card.getAttribute('data-cmd-id');
-      const cmd = store.listCmds().find(x => x.id === cmdId);
+      const cmd = store.listAllCmds().find(x => x.id === cmdId);
       if(!cmd) return;
 
       const act = btn.getAttribute('data-act');
-      const content = (store.getBook(bookId)?.draft || '').trim();
-      const merged = (cmd.template || '').replaceAll('{{CONTENT}}', content || '（請在草稿分頁貼上內容後再使用）');
 
-      if(act === 'copyCmd'){
-        const ok = await copyText(merged);
-        onToast?.(ok ? '已複製指令' : '複製失敗');
+      if(act === 'pin'){
+        const res = store.togglePin(cmdId);
+        if(!res.ok){ onToast?.(res.msg || '釘選失敗'); return; }
+        onToast?.(res.pinned ? '已釘選' : '已取消釘選');
+        onNavigate?.(`#/editor?id=${encodeURIComponent(bookId)}&tab=ai`);
+        return;
       }
+
+      const merged = buildMerged(cmd);
+
+      if(act === 'preview'){
+        setPreview(merged);
+        onToast?.('已更新預覽');
+        return;
+      }
+
+      if(act === 'copy'){
+        const ok = await copyText(merged);
+        onToast?.(ok ? '已複製' : '複製失敗');
+        return;
+      }
+
       if(act === 'saveNote'){
         const b = store.getBook(bookId);
         const next = (b?.aiNotes || '').trim();
@@ -214,7 +364,52 @@ export function renderEditor({ root, store, bookId, tab='draft', onNavigate, onT
         store.updateBook(bookId, { aiNotes: `${next}${sep}${merged}` });
         onToast?.('已存到本書指派');
         onNavigate?.(`#/editor?id=${encodeURIComponent(bookId)}&tab=ai`);
+        return;
       }
+
+      if(act === 'deleteMy'){
+        store.deleteMyCmd(cmdId);
+        onToast?.('已刪除');
+        onNavigate?.(`#/editor?id=${encodeURIComponent(bookId)}&tab=ai`);
+        return;
+      }
+    });
+
+    // Save My Command
+    root.querySelector('#btnSaveMy')?.addEventListener('click', () => {
+      const title = root.querySelector('#myTitle')?.value || '';
+      const hint = root.querySelector('#myHint')?.value || '';
+      const prompt = root.querySelector('#myPrompt')?.value || '';
+      const res = store.addMyCmd({ title, hint, prompt });
+      if(!res.ok){ onToast?.(res.msg || '儲存失敗'); return; }
+      onToast?.('已存成我的指令');
+      onNavigate?.(`#/editor?id=${encodeURIComponent(bookId)}&tab=ai`);
+    });
+    root.querySelector('#btnClearMy')?.addEventListener('click', () => {
+      const t = root.querySelector('#myTitle');
+      const h = root.querySelector('#myHint');
+      const p = root.querySelector('#myPrompt');
+      if(t) t.value = '';
+      if(h) h.value = '';
+      if(p) p.value = '';
+      onToast?.('已清空');
+    });
+
+    // Preview actions
+    root.querySelector('#btnCopyPreview')?.addEventListener('click', async () => {
+      const ok = await copyText(previewEl()?.value || '');
+      onToast?.(ok ? '已複製預覽' : '複製失敗');
+    });
+
+    root.querySelector('#btnAppendPreview')?.addEventListener('click', () => {
+      const b = store.getBook(bookId);
+      const merged = (previewEl()?.value || '').trim();
+      if(!merged){ onToast?.('預覽是空的'); return; }
+      const next = (b?.aiNotes || '').trim();
+      const sep = next ? '\n\n---\n\n' : '';
+      store.updateBook(bookId, { aiNotes: `${next}${sep}${merged}` });
+      onToast?.('已加入本書指派');
+      onNavigate?.(`#/editor?id=${encodeURIComponent(bookId)}&tab=ai`);
     });
 
     root.querySelector('#btnCopyNotes')?.addEventListener('click', async () => {
@@ -222,6 +417,37 @@ export function renderEditor({ root, store, bookId, tab='draft', onNavigate, onT
       const ok = await copyText(b?.aiNotes || '');
       onToast?.(ok ? '已複製本書指派' : '複製失敗');
     });
+
+    // Import/Export AI library
+    const aiFileInput = document.createElement('input');
+    aiFileInput.type = 'file';
+    aiFileInput.accept = 'application/json';
+    aiFileInput.style.display = 'none';
+    document.body.appendChild(aiFileInput);
+
+    root.querySelector('#btnExportAi')?.addEventListener('click', () => {
+      const obj = store.exportAiLibrary();
+      downloadJSON(obj, 'angel-ai-library.json');
+      onToast?.('已匯出指令庫');
+    });
+    root.querySelector('#btnImportAi')?.addEventListener('click', () => {
+      aiFileInput.value = '';
+      aiFileInput.click();
+    });
+    aiFileInput.onchange = async () => {
+      const f = aiFileInput.files?.[0];
+      if(!f) return;
+      try{
+        const txt = await f.text();
+        const obj = JSON.parse(txt);
+        const res = store.importAiLibrary(obj);
+        if(!res.ok){ onToast?.(res.msg || '匯入失敗'); return; }
+        onToast?.('已匯入指令庫');
+        onNavigate?.(`#/editor?id=${encodeURIComponent(bookId)}&tab=ai`);
+      }catch(e){
+        onToast?.('匯入失敗：檔案無法讀取');
+      }
+    };
 
   }else{
     attachTextareaAutosave('#textArea', field);
