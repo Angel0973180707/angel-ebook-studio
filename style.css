@@ -634,3 +634,38 @@ body.aiOpen {
   .edTopRight { display:flex; gap:10px; width:100%; }
   .edTopRight .btn { flex:1; }
 }
+/* ===== Editor page v1 patch: fix left layout (append at end) ===== */
+.panelHead{
+  align-items: flex-start;
+}
+
+.panelHead > div:first-child{
+  min-width: 0;
+}
+
+.panelHead .h2{
+  white-space: normal;
+}
+
+.panelHead .sub{
+  /* 防止被全站 vertical/奇怪換行影響 */
+  writing-mode: horizontal-tb !important;
+  text-orientation: mixed !important;
+  white-space: normal !important;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+  line-height: 1.35;
+}
+
+/* 讓編輯頁頭部左右更像一排，手機不會擠爆 */
+@media (max-width: 520px){
+  .panelHead{
+    display: flex;
+    flex-direction: row;
+    gap: 12px;
+  }
+  .panelHead .panelActions{
+    justify-content: flex-end;
+    flex-wrap: wrap;
+  }
+}
