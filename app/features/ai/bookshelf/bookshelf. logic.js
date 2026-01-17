@@ -7,7 +7,6 @@ export function mountBookshelf(appEl){
 
   async function refresh(){
     books = await getBooks();
-    // 最新更新排前面
     books.sort((a,b) => (b.updatedAt||0) - (a.updatedAt||0));
     appEl.innerHTML = bookshelfHTML({ books });
   }
@@ -16,15 +15,14 @@ export function mountBookshelf(appEl){
     if(action === 'newBook'){
       const title = prompt('書名（可先留空，之後再改）', '我的新書');
       const t = (title || '').trim() || '我的新書';
-      const book = {
+      await saveBook({
         id: uid('book'),
         title: t,
-        status: 'draft', // draft | published
+        status: 'draft',
         createdAt: now(),
         updatedAt: now(),
         version: 1
-      };
-      await saveBook(book);
+      });
       await refresh();
       return;
     }
@@ -49,13 +47,11 @@ export function mountBookshelf(appEl){
     }
 
     if(action === 'open'){
-      // 先做占位：之後接「書本概覽 / 章節列表 / 編輯器」
       alert(`即將開啟：${book.title}\n\n下一步我會幫你接：章節/圖文編輯器。`);
       return;
     }
   }
 
-  // 事件委派：全站只要一個監聽
   appEl.addEventListener('click', (e) => {
     const btn = e.target.closest('[data-action]');
     if(!btn) return;
@@ -65,6 +61,5 @@ export function mountBookshelf(appEl){
     onAction(action, bookId);
   });
 
-  // 首次渲染
   refresh();
 }
