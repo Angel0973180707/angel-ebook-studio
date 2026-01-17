@@ -1,72 +1,40 @@
-/* Angel Ebook Studio Service Worker */
-const VERSION = 'v1.1.0';
-const CACHE = `aes-${VERSION}`;
-
-const CORE_ASSETS = [
+/* Angel Ebook Studio - Service Worker (simple) */
+const CACHE = 'angel-ebook-studio-v1-2';
+const ASSETS = [
   './',
   './index.html',
   './style.css',
   './manifest.json',
   './app/main.js',
-  './app/core/constants.js',
-  './app/core/store.js',
-  './app/core/utils.js',
-  './app/features/bookshelf/bookshelf.logic.js',
-  './app/features/bookshelf/bookshelf.view.js',
-  './app/features/editor/editor.logic.js',
-  './app/features/editor/editor.view.js',
-  './app/features/ai/ai.logic.js',
-  './app/features/ai/ai.view.js',
+  './app/state/store.js',
+  './app/views/bookshelf.js',
+  './app/views/editor.js',
   './assets/icons/icon-192.png',
   './assets/icons/icon-512.png'
 ];
 
-self.addEventListener('install', (event) => {
-  event.waitUntil((async () => {
-    const cache = await caches.open(CACHE);
-    await cache.addAll(CORE_ASSETS);
-    self.skipWaiting();
-  })());
+self.addEventListener('install', (evt) => {
+  evt.waitUntil(caches.open(CACHE).then(c => c.addAll(ASSETS)));
+  self.skipWaiting();
 });
 
-self.addEventListener('activate', (event) => {
-  event.waitUntil((async () => {
+self.addEventListener('activate', (evt) => {
+  evt.waitUntil((async () => {
     const keys = await caches.keys();
-    await Promise.all(keys.map(k => (k.startsWith('aes-') && k !== CACHE) ? caches.delete(k) : Promise.resolve()));
-    self.clients.claim();
+    await Promise.all(keys.map(k => (k === CACHE ? null : caches.delete(k))));
+    await self.clients.claim();
   })());
 });
 
-self.addEventListener('fetch', (event) => {
-  const req = event.request;
-  const url = new URL(req.url);
-
-  // Only handle same-origin
-  if (url.origin !== self.location.origin) return;
-
-  // Navigation: network-first, fallback to cache
-  if (req.mode === 'navigate') {
-    event.respondWith((async () => {
-      try {
-        const fresh = await fetch(req);
-        const cache = await caches.open(CACHE);
-        cache.put('./index.html', fresh.clone());
-        return fresh;
-      } catch {
-        const cached = await caches.match('./index.html');
-        return cached || Response.error();
-      }
-    })());
-    return;
-  }
-
-  // Assets: cache-first, revalidate
-  event.respondWith((async () => {
-    const cached = await caches.match(req);
+self.addEventListener('fetch', (evt) => {
+  const req = evt.request;
+  evt.respondWith((async () => {
+    const cached = await caches.match(req, { ignoreSearch: true });
     if (cached) return cached;
-    const res = await fetch(req);
-    const cache = await caches.open(CACHE);
-    cache.put(req, res.clone());
-    return res;
+    try{
+      return await fetch(req);
+    }catch(e){
+      return cached || new Response('offline', { status: 200, headers: { 'Content-Type': 'text/plain' }});
+    }
   })());
 });

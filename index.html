@@ -16,16 +16,14 @@
   <header class="topbar">
     <div class="brand">
       <div class="title">Angel Ebook Studio</div>
-      <div class="sub">書庫｜編輯｜AI 協作｜匯入匯出</div>
+      <div class="sub" id="topSub">書庫</div>
     </div>
-
-    <div class="topActions">
-      <button class="btn ghost" id="btnHome" type="button" title="回到書庫">書庫</button>
-      <button class="btn" id="btnAi" type="button" title="AI 協作">AI 協作</button>
-    </div>
+    <button class="btn primary" id="btnAiTop" type="button">AI 協作</button>
   </header>
 
   <main id="app" class="app"></main>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
 
   <script type="module" src="app/main.js"></script>
 </body>
