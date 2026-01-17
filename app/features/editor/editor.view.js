@@ -1,64 +1,68 @@
 // app/features/editor/editor.view.js
-export function editorHTML({ book, tab = 'draft' }) {
-  const t = book?.title || '（未命名）';
-  const statusTxt = book?.status === 'published' ? '完稿' : '草稿';
-
-  return `
-    <section class="edWrap">
-      <div class="edTop">
-        <button class="btn small ghost" data-action="back">← 回書庫</button>
-        <div class="edTopMid">
-          <div class="edTitleRow">
-            <input class="edTitle" value="${escapeHTML(t)}" placeholder="書名" data-role="title" />
-            <span class="pill ${book?.status === 'published' ? 'ok' : ''}">${statusTxt}</span>
-          </div>
-          <div class="edHint">自動存放｜匯出/匯入 JSON｜一鍵複製段落給 AI</div>
-        </div>
-        <div class="edTopRight">
-          <button class="btn small" data-action="export">匯出</button>
-          <button class="btn small ghost" data-action="import">匯入</button>
-        </div>
-      </div>
-
-      <div class="edTabs">
-        ${tabBtn('inspire','靈感素材',tab)}
-        ${tabBtn('draft','草稿',tab)}
-        ${tabBtn('final','完稿',tab)}
-        <div class="edTabsSpacer"></div>
-        <button class="btn small ghost" data-action="copyForAI">複製本頁 → AI</button>
-      </div>
-
-      <div class="edBody">
-        ${tabPanel('inspire', tab, '靈感素材（可貼素材、金句、參考）')}
-        ${tabPanel('draft', tab, '草稿（先寫得出來）')}
-        ${tabPanel('final', tab, '完稿（整理、定稿、可列印）')}
-      </div>
-
-      <div class="edFooter">
-        <button class="btn small ghost" data-action="toggleStatus">切換 草稿/完稿</button>
-        <div class="edSaved" id="edSaved">已自動存放</div>
-      </div>
-    </section>
-  `;
-}
-
-function tabBtn(key, label, active) {
-  return `<button class="edTab ${active === key ? 'on' : ''}" data-action="tab" data-tab="${key}">${label}</button>`;
-}
-
-function tabPanel(key, active, placeholder) {
-  return `
-    <div class="edPanel ${active === key ? 'on' : ''}" data-panel="${key}">
-      <textarea class="edArea" data-role="${key}" placeholder="${escapeHTML(placeholder)}"></textarea>
-    </div>
-  `;
-}
-
-function escapeHTML(s){
+function esc(s){
   return String(s ?? '')
     .replaceAll('&','&amp;')
     .replaceAll('<','&lt;')
     .replaceAll('>','&gt;')
     .replaceAll('"','&quot;')
     .replaceAll("'","&#039;");
+}
+
+export function editorHTML({ title, status, tab, data }) {
+  const t = tab || 'draft';
+  const v = (k) => esc(data?.[k] || '');
+
+  return `
+    <section class="panel">
+      <div class="panelHead" style="gap:12px; align-items:flex-start;">
+        <div style="flex:1; min-width:0;">
+          <div class="h2">✍️ 編輯頁</div>
+          <div class="sub">靈感／草稿／完稿／協作指令｜自動存放</div>
+        </div>
+
+        <div class="panelActions" style="display:flex; gap:10px; flex-wrap:wrap; justify-content:flex-end;">
+          <button class="btn ghost" data-action="back">← 回書庫</button>
+          <button class="btn ghost" data-action="toggleStatus">${status === 'published' ? '設為草稿' : '設為完稿'}</button>
+          <button class="btn" data-action="export">一鍵匯出</button>
+          <label class="btn ghost" style="cursor:pointer;">
+            匯入
+            <input type="file" accept="application/json" data-action="import" style="display:none;">
+          </label>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:12px;">
+        <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center; justify-content:space-between;">
+          <div style="flex:1; min-width:0;">
+            <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+              <input class="input" data-field="title" placeholder="書名" value="${esc(title || '')}" style="flex:1; min-width:160px;">
+              <span class="pill ${status === 'published' ? 'ok' : ''}">${status === 'published' ? '完稿' : '草稿'}</span>
+            </div>
+          </div>
+        </div>
+
+        <div style="margin-top:12px; display:flex; gap:8px; flex-wrap:wrap;">
+          <button class="btn small ${t==='inspire'?'':'ghost'}" data-tab="inspire">靈感素材</button>
+          <button class="btn small ${t==='draft'?'':'ghost'}" data-tab="draft">草稿</button>
+          <button class="btn small ${t==='final'?'':'ghost'}" data-tab="final">完稿</button>
+          <button class="btn small ${t==='cmd'?'':'ghost'}" data-tab="cmd">協作指令</button>
+        </div>
+
+        <div style="margin-top:12px;">
+          ${t==='inspire' ? textarea('inspire', '把靈感素材貼在這裡（摘錄／筆記／連結／片段）', v('inspire')) : ''}
+          ${t==='draft' ? textarea('draft', '草稿區：先寫出來，再慢慢整理', v('draft')) : ''}
+          ${t==='final' ? textarea('final', '完稿區：對外發佈用的版本', v('final')) : ''}
+          ${t==='cmd' ? textarea('cmd', '協作指令：你臨時指派給 AI 的工作（可儲存、可複用）', v('cmd')) : ''}
+          <div class="sub" style="margin-top:10px; opacity:.8;">✅ 自動存放：每次輸入後會自動保存。</div>
+        </div>
+      </div>
+    </section>
+  `;
+}
+
+function textarea(key, placeholder, value){
+  return `
+    <textarea class="textarea" data-field="${key}" placeholder="${esc(placeholder)}"
+      style="width:100%; min-height:42vh; resize:vertical; line-height:1.6;">${value}</textarea>
+  `;
 }
