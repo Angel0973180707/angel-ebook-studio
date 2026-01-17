@@ -32,7 +32,6 @@ async function withStore(storeName, mode, fn){
   });
 }
 
-/* ===== Books CRUD ===== */
 export async function getBooks(){
   return withStore('books', 'readonly', (store) => {
     return new Promise((resolve, reject) => {
