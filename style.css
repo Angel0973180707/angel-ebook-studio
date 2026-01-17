@@ -334,3 +334,155 @@ button.btn {
 }
 .row{ display:flex; gap:10px; margin-top: 10px; flex-wrap: wrap; }
 .hint{ opacity:.75; font-size: 13px; margin-top: 8px; line-height: 1.35; }
+/* ===== Editor v1 (minimal) ===== */
+#btnAi, .btn { white-space: nowrap; word-break: keep-all; overflow-wrap: normal; }
+
+.ed{ padding: 14px; }
+.edTop{ display:flex; gap:10px; align-items:center; justify-content:space-between; }
+.edTitleWrap{ flex:1; min-width: 0; }
+.edTitle{
+  width:100%;
+  border-radius: 14px;
+  border: 1px solid rgba(255,255,255,.14);
+  background: rgba(255,255,255,.06);
+  color: rgba(255,255,255,.95);
+  padding: 10px 12px;
+  font-weight: 800;
+  outline: none;
+}
+.edMeta{ display:flex; gap:10px; align-items:center; margin-top: 6px; }
+.edTopBtns{ display:flex; gap:10px; align-items:center; }
+
+.edTabs{ display:flex; gap:10px; flex-wrap: wrap; margin-top: 12px; }
+.tab{
+  padding: 10px 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,.14);
+  background: rgba(255,255,255,.06);
+  color: rgba(255,255,255,.9);
+  white-space: nowrap;
+}
+.tab.on{ background: rgba(255,255,255,.14); border-color: rgba(255,255,255,.22); }
+
+.edBody{ margin-top: 12px; }
+.edTA{
+  width:100%;
+  min-height: 46vh;
+  border-radius: 16px;
+  border: 1px solid rgba(255,255,255,.14);
+  background: rgba(0,0,0,.16);
+  color: rgba(255,255,255,.95);
+  padding: 12px;
+  outline: none;
+  line-height: 1.6;
+}
+.edFooter{ display:flex; gap:12px; align-items:center; margin-top: 10px; flex-wrap: wrap; }
+.hint{ opacity:.75; font-size: 13px; }
+
+/* ===== Bottom Sheet (More) ===== */
+.sheetBackdrop{
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,.45);
+  display:flex; align-items:flex-end; justify-content:center;
+  padding: 14px;
+  z-index: 9998;
+}
+.sheet{
+  width: min(620px, 100%);
+  border-radius: 22px;
+  border: 1px solid rgba(255,255,255,.18);
+  background: rgba(10,16,14,.92);
+  box-shadow: 0 24px 60px rgba(0,0,0,.55);
+  overflow: hidden;
+}
+.sheetHead{
+  display:flex; align-items:center; justify-content:space-between;
+  padding: 12px 14px;
+  border-bottom: 1px solid rgba(255,255,255,.10);
+}
+.sheetTitle{ font-size: 18px; font-weight: 800; }
+.sheetBody{ padding: 14px; }
+.sheetGrid{ display:grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.note{
+  margin-top: 12px;
+  padding: 12px;
+  border-radius: 18px;
+  border: 1px solid rgba(255,255,255,.10);
+  background: rgba(255,255,255,.05);
+}
+.noteTitle{ font-weight: 800; margin-bottom: 6px; }
+.noteTxt{ opacity:.85; font-size: 13px; line-height: 1.4; }
+
+/* ===== AI Sheet ===== */
+.aiBackdrop{
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,.45);
+  display:flex; align-items:flex-end; justify-content:center;
+  padding: 14px;
+  z-index: 9999;
+}
+.aiSheet{
+  width: min(620px, 100%);
+  border-radius: 22px;
+  border: 1px solid rgba(255,255,255,.18);
+  background: rgba(10,16,14,.92);
+  box-shadow: 0 24px 60px rgba(0,0,0,.55);
+  overflow: hidden;
+}
+.aiHead{
+  display:flex; align-items:center; justify-content:space-between;
+  padding: 12px 14px;
+  border-bottom: 1px solid rgba(255,255,255,.10);
+}
+.aiTitle{ font-size: 18px; font-weight: 800; }
+.aiBody{ padding: 14px; display:flex; flex-direction:column; gap: 12px; }
+
+.aiRow{ display:flex; gap:10px; align-items:flex-start; flex-wrap: wrap; }
+.aiLabel{ opacity:.8; font-size: 13px; padding-top: 8px; }
+.aiPills{ display:flex; gap:10px; flex-wrap: wrap; }
+
+.aiBlock{
+  padding: 12px;
+  border-radius: 18px;
+  border: 1px solid rgba(255,255,255,.10);
+  background: rgba(255,255,255,.05);
+}
+.aiSub{ font-weight: 800; margin-bottom: 8px; }
+.aiTA{
+  width:100%;
+  border-radius: 14px;
+  border: 1px solid rgba(255,255,255,.16);
+  background: rgba(0,0,0,.18);
+  color: rgba(255,255,255,.92);
+  padding: 10px 12px;
+  outline: none;
+}
+.aiBtns{ display:flex; gap:10px; flex-wrap: wrap; margin-top: 10px; }
+.aiHint{ opacity:.75; font-size: 13px; margin-top: 8px; line-height: 1.35; }
+
+.aiCmdRow{ display:flex; gap:10px; align-items:center; margin-bottom: 10px; }
+.aiInput{
+  flex:1; min-width: 0;
+  border-radius: 14px;
+  border: 1px solid rgba(255,255,255,.14);
+  background: rgba(255,255,255,.06);
+  color: rgba(255,255,255,.92);
+  padding: 10px 12px;
+  outline: none;
+}
+.aiCmdList{ display:flex; flex-direction:column; gap:10px; }
+.aiCmdItem{
+  display:flex; gap:10px; justify-content:space-between;
+  padding: 10px;
+  border-radius: 16px;
+  border: 1px solid rgba(255,255,255,.10);
+  background: rgba(0,0,0,.12);
+}
+.aiCmdMain{ flex:1; min-width: 0; }
+.aiCmdTitle{ font-weight: 800; margin-bottom: 4px; }
+.aiCmdPrompt{ opacity:.85; font-size: 13px; line-height: 1.35; }
+.aiCmdBtns{ display:flex; gap:8px; align-items:flex-start; }
+
+@media (max-width: 420px){
+  .sheetGrid{ grid-template-columns: 1fr; }
+}
