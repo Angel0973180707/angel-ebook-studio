@@ -279,6 +279,70 @@ textarea.textarea::placeholder{ color:rgba(234,243,240,.55); }
 .aiCardSub{ margin-top:6px; color:var(--muted); font-size:12px; line-height:1.5; }
 .aiCardActions{ margin-top:10px; display:flex; gap:8px; flex-wrap:wrap; }
 
+/* --- AI layout v1.3 --- */
+.aiLayout{ display:grid; grid-template-columns:1fr; gap:12px; }
+.aiCol{ min-width:0; }
+.aiSide{ min-width:0; }
+
+.panelBlock{
+  margin-top:12px;
+  border:1px solid var(--line);
+  border-radius:14px;
+  background:rgba(255,255,255,.03);
+  padding:12px;
+}
+.panelBlock:first-child{ margin-top:0; }
+.panelBlockHead{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:10px;
+  margin-bottom:10px;
+}
+.panelBlockActions{ display:flex; gap:8px; flex-wrap:wrap; }
+.h3{ font-size:14px; font-weight:900; }
+.sub{ margin-top:2px; font-size:12px; color:var(--muted); line-height:1.4; }
+
+.aiCardTop{ display:flex; align-items:flex-start; justify-content:space-between; gap:10px; }
+.pinBtn{
+  border:1px solid var(--line);
+  background:transparent;
+  color:rgba(255,255,255,.7);
+  width:34px; height:34px;
+  border-radius:12px;
+  cursor:pointer;
+  white-space:nowrap;
+}
+.pinBtn.on{ border-color:rgba(240,160,75,.45); color:var(--accent); background:rgba(240,160,75,.10); }
+
+.tagRow{ margin-top:10px; display:flex; gap:8px; flex-wrap:wrap; }
+.tag{ font-size:12px; padding:6px 10px; border:1px solid var(--line); border-radius:999px; color:var(--muted); }
+
+.acc{ border:1px solid var(--line); border-radius:14px; padding:10px 12px; background:rgba(0,0,0,.10); margin-top:10px; }
+.acc summary{ list-style:none; cursor:pointer; display:flex; align-items:center; justify-content:space-between; gap:10px; }
+.acc summary::-webkit-details-marker{ display:none; }
+.accTitle{ font-weight:900; }
+.accHint{ font-size:12px; color:var(--muted); }
+.accBody{ margin-top:10px; }
+
+.input{
+  width:100%;
+  border:1px solid var(--line);
+  background:rgba(0,0,0,.18);
+  color:var(--text);
+  border-radius:14px;
+  padding:10px 12px;
+  font-size:14px;
+  outline:none;
+}
+.input::placeholder{ color:rgba(234,243,240,.55); }
+
+.myCmdForm{ display:flex; flex-direction:column; gap:10px; margin-bottom:12px; }
+.rowEnd{ display:flex; justify-content:flex-end; gap:8px; flex-wrap:wrap; }
+.miniSub{ margin-top:8px; font-size:12px; color:var(--muted); }
+
+.sticky{ position:sticky; top:76px; }
+
 .toast{
   position:fixed;
   left:50%;
@@ -302,4 +366,5 @@ textarea.textarea::placeholder{ color:rgba(234,243,240,.55); }
 @media (min-width: 720px){
   .aiGrid{ grid-template-columns:1fr 1fr; }
   textarea.textarea{ min-height:58vh; }
+  .aiLayout{ grid-template-columns:1.35fr .95fr; }
 }

@@ -1,5 +1,5 @@
 /* Angel Ebook Studio - Service Worker (simple) */
-const CACHE = 'angel-ebook-studio-v1-2';
+const CACHE = 'angel-ebook-studio-v1-3';
 const ASSETS = [
   './',
   './index.html',
