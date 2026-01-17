@@ -1,16 +1,19 @@
 // app/features/bookshelf/bookshelf.view.js
 
-export function bookshelfHTML({ books = [] }) {
-  const items = books.length
-    ? books.map(b => `
-      <article class="bookItem" data-book-id="${b.id}">
+export function bookshelfHTML({ books = [] } = {}) {
+  // ✅ 防呆：任何狀況都保證是陣列
+  const safeBooks = Array.isArray(books) ? books : [];
+
+  const items = safeBooks.length
+    ? safeBooks.map(b => `
+      <article class="bookItem" data-book-id="${escapeHTML(b?.id || '')}">
         <div class="bookMain">
-          <div class="bookTitle">${escapeHTML(b.title || '（未命名）')}</div>
+          <div class="bookTitle">${escapeHTML(b?.title || '（未命名）')}</div>
           <div class="bookMeta">
-            <span class="pill ${b.status === 'published' ? 'ok' : ''}">
-              ${b.status === 'published' ? '完稿' : '草稿'}
+            <span class="pill ${b?.status === 'published' ? 'ok' : ''}">
+              ${b?.status === 'published' ? '完稿' : '草稿'}
             </span>
-            <span class="metaTxt">更新：${fmtTime(b.updatedAt)}</span>
+            <span class="metaTxt">更新：${fmtTime(b?.updatedAt)}</span>
           </div>
         </div>
         <div class="bookActions">
