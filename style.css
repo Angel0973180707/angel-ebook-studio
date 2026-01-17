@@ -224,3 +224,38 @@ body{
 .empty{ padding:18px; text-align:center; opacity:.85; }
 .emptyTitle{ font-weight:800; margin-bottom:6px; }
 .emptySub{ font-size:12px; opacity:.75; }
+/* ===== Fix: Button wrapping / word breaking ===== */
+.btn,
+button.btn {
+  white-space: nowrap;      /* 不要讓「Ai協作」被拆成 Ai協 / 作 */
+  word-break: keep-all;     /* 中文不要被硬拆字 */
+  overflow-wrap: normal;    /* 不要任意斷行 */
+  line-height: 1.2;
+}
+
+.topActions,
+.panelActions {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.topActions .btn,
+.panelActions .btn {
+  min-width: 140px;         /* 讓「＋新增一本書」有足夠寬度 */
+  padding: 14px 16px;
+  border-radius: 18px;
+}
+
+/* 手機螢幕較窄時，按鈕改成「自動橫排換行」，但每顆按鈕內不拆字 */
+@media (max-width: 420px) {
+  .topActions,
+  .panelActions {
+    flex-wrap: wrap;
+    justify-content: flex-end;
+  }
+  .topActions .btn,
+  .panelActions .btn {
+    min-width: 132px;
+  }
+}
