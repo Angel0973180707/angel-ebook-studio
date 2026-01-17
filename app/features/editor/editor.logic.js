@@ -1,191 +1,172 @@
-// app/features/editor/editor.logic.js
+import { $, $$, now, toast, downloadText, readFileAsText } from '../../core/utils.js';
+import { loadBooks, saveBooks, loadBookContent, saveBookContent, loadAITemp, saveAITemp, loadUIPref, saveUIPref } from '../../core/store.js';
 import { editorHTML } from './editor.view.js';
 
-const LS_BOOKS = 'angel_ebook_books_v1';
-
-function safeJsonParse(str, fallback) {
-  try { return JSON.parse(str); } catch { return fallback; }
-}
-
-function loadBooks(){
-  const raw = localStorage.getItem(LS_BOOKS);
-  const data = raw ? safeJsonParse(raw, []) : [];
-  return Array.isArray(data) ? data : [];
-}
-
-function saveBooks(books){
-  localStorage.setItem(LS_BOOKS, JSON.stringify(books));
-}
-
-function now(){
-  return Date.now();
-}
-
-function bookContentKey(id){
-  return `angel_ebook_book_content_${id}_v1`;
-}
-
-function loadContent(id){
-  const raw = localStorage.getItem(bookContentKey(id));
-  const data = raw ? safeJsonParse(raw, {}) : {};
-  return data && typeof data === 'object' ? data : {};
-}
-
-function saveContent(id, data){
-  localStorage.setItem(bookContentKey(id), JSON.stringify(data || {}));
-}
-
-function downloadJSON(filename, obj){
-  const blob = new Blob([JSON.stringify(obj, null, 2)], { type:'application/json' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = filename;
-  document.body.appendChild(a);
-  a.click();
-  a.remove();
-  setTimeout(() => URL.revokeObjectURL(url), 800);
-}
-
 export function mountEditor(root, bookId){
-  if (!root) return;
-
   const books = loadBooks();
-  const idx = books.findIndex(b => b.id === bookId);
-  if (idx < 0) {
-    root.innerHTML = `<section style="padding:24px;">找不到這本書（id：${bookId}）</section>`;
+  const book = books.find(b=>b.id===bookId);
+  if(!book){
+    root.innerHTML = `<section class="panel"><div class="h2">找不到這本書</div><div class="sub">回到書庫重新選擇</div></section>`;
     return;
   }
 
-  const state = {
-    bookId,
-    tab: 'draft',
-    books,
-    book: books[idx],
-    content: loadContent(bookId)
-  };
+  const ui = loadUIPref();
+  const activeTab = ui[`tab_${bookId}`] || 'draft';
 
-  function render(){
-    root.innerHTML = editorHTML({
-      title: state.book.title,
-      status: state.book.status,
-      tab: state.tab,
-      data: state.content
+  const content = loadBookContent(bookId);
+  const aiTemp = loadAITemp(bookId).join('\n');
+
+  root.innerHTML = editorHTML({ book, content, activeTab });
+
+  const titleInput = $('[data-role="title"]', root);
+  const fileImport = $('#fileImport', root);
+
+  // fill ai temp field
+  const aiField = $('[data-field="ai_temp"]', root);
+  if(aiField) aiField.value = aiTemp;
+
+  function setActiveTab(tab){
+    ui[`tab_${bookId}`] = tab;
+    saveUIPref(ui);
+    $$('.tab', root).forEach(b=> b.classList.toggle('active', b.dataset.tab===tab));
+    $$('.tabPanel', root).forEach(p=> p.classList.toggle('show', p.dataset.panel===tab));
+
+    // update AI context: which text to use
+    updateAIContext();
+  }
+
+  function saveTitle(){
+    book.title = (titleInput.value || '未命名書稿').trim();
+    book.updatedAt = now();
+    saveBooks(books);
+  }
+
+  function saveField(field, value){
+    content[field] = value;
+    saveBookContent(bookId, content);
+    book.updatedAt = now();
+    saveBooks(books);
+  }
+
+  function updateAIContext(){
+    const tab = ui[`tab_${bookId}`] || 'draft';
+    let text = '';
+    if(tab === 'inspiration') text = content.inspiration || '';
+    else if(tab === 'draft') text = content.draft || '';
+    else if(tab === 'final') text = content.final || '';
+    else text = '';
+
+    // current AI temp as notes
+    const temp = $('[data-field="ai_temp"]', root)?.value || '';
+
+    window.AES?.setAIContext?.({
+      bookId,
+      bookTitle: book.title,
+      activeTab: tab,
+      sourceText: text,
+      aiTemp: temp
     });
   }
 
-  function commitBookMeta(){
-    state.book.updatedAt = now();
-    state.books[idx] = state.book;
-    saveBooks(state.books);
-  }
-
-  function commitContent(){
-    saveContent(bookId, state.content);
-    commitBookMeta();
-  }
-
-  render();
-
-  // 事件委派
-  root.addEventListener('click', (e) => {
-    const tabBtn = e.target.closest('button[data-tab]');
-    if (tabBtn){
-      state.tab = tabBtn.dataset.tab;
-      render();
+  // listeners
+  root.addEventListener('click', (e)=>{
+    const tabBtn = e.target.closest('.tab');
+    if(tabBtn){
+      setActiveTab(tabBtn.dataset.tab);
       return;
     }
 
     const btn = e.target.closest('button[data-action]');
-    if (!btn) return;
+    if(!btn) return;
     const action = btn.dataset.action;
 
-    if (action === 'back'){
-      location.hash = '#/';
+    if(action === 'rename'){
+      titleInput.focus();
+      titleInput.select();
       return;
     }
 
-    if (action === 'toggleStatus'){
-      state.book.status = (state.book.status === 'published') ? 'draft' : 'published';
-      commitBookMeta();
-      render();
-      return;
-    }
-
-    if (action === 'export'){
+    if(action === 'export'){
       const payload = {
-        version: 'editor-v1',
-        exportedAt: new Date().toISOString(),
-        book: {
-          id: state.book.id,
-          title: state.book.title,
-          status: state.book.status,
-          updatedAt: state.book.updatedAt
-        },
-        content: state.content
+        kind: 'angel-ebook-studio-book',
+        version: 1,
+        book: { ...book },
+        content: { ...content },
+        aiTemp: ($('[data-field="ai_temp"]', root)?.value || '').split(/\n+/).map(s=>s.trim()).filter(Boolean)
       };
-      const safeName = (state.book.title || 'my-book').replace(/[\\/:*?"<>|]/g, '_');
-      downloadJSON(`angel-ebook-${safeName}.json`, payload);
-
-      // ✅ 有支援就順便叫出分享（你可存雲端：Drive/Dropbox/Line/Email）
-      if (navigator.share) {
-        try {
-          navigator.share({ title: 'Angel Ebook Export', text: '已匯出 JSON，請選擇要存到哪裡。' });
-        } catch {}
-      }
+      const nameSafe = (book.title || 'ebook').replace(/[^\w\u4e00-\u9fa5-]+/g,'_').slice(0,60);
+      downloadText(`${nameSafe}.json`, JSON.stringify(payload, null, 2));
+      toast('已匯出');
       return;
     }
-  }, { passive:true });
 
-  // 匯入（file input change）
-  root.addEventListener('change', async (e) => {
-    const input = e.target.closest('input[data-action="import"]');
-    if (!input) return;
-    const file = input.files?.[0];
-    if (!file) return;
+    if(action === 'import'){
+      fileImport.value = '';
+      fileImport.click();
+      return;
+    }
 
+    if(action === 'ai_open'){
+      // open drawer
+      document.getElementById('btnAi')?.click();
+      return;
+    }
+
+    if(action === 'ai_save'){
+      const txt = ($('[data-field="ai_temp"]', root)?.value || '').trim();
+      const arr = txt ? txt.split(/\n+/).map(s=>s.trim()).filter(Boolean) : [];
+      saveAITemp(bookId, arr);
+      toast('已存到臨時指派');
+      updateAIContext();
+      return;
+    }
+  }, { passive: true });
+
+  root.addEventListener('input', (e)=>{
+    const t = e.target;
+    if(t.matches('[data-role="title"]')){
+      saveTitle();
+      updateAIContext();
+      return;
+    }
+    if(t.matches('textarea[data-field]')){
+      const field = t.dataset.field;
+      if(field === 'ai_temp'){
+        // don't spam localStorage on every key; still ok, but keep light
+        return;
+      }
+      saveField(field, t.value);
+      updateAIContext();
+    }
+  });
+
+  fileImport.addEventListener('change', async ()=>{
+    const f = fileImport.files?.[0];
+    if(!f) return;
     try{
-      const text = await file.text();
-      const obj = safeJsonParse(text, null);
-      if (!obj || typeof obj !== 'object') throw new Error('JSON 格式不正確');
+      const txt = await readFileAsText(f);
+      const obj = JSON.parse(txt);
+      if(obj?.kind !== 'angel-ebook-studio-book') throw new Error('檔案格式不對');
 
-      const incoming = obj.content && typeof obj.content === 'object' ? obj.content : {};
-      state.content = {
-        inspire: incoming.inspire || '',
-        draft: incoming.draft || '',
-        final: incoming.final || '',
-        cmd: incoming.cmd || ''
-      };
+      // merge
+      const bc = obj.content || {};
+      content.inspiration = String(bc.inspiration || '');
+      content.draft = String(bc.draft || '');
+      content.final = String(bc.final || '');
+      saveBookContent(bookId, content);
 
-      // 也允許匯入時更新書名/狀態
-      if (obj.book?.title) state.book.title = String(obj.book.title);
-      if (obj.book?.status === 'published' || obj.book?.status === 'draft') state.book.status = obj.book.status;
+      const aiArr = Array.isArray(obj.aiTemp) ? obj.aiTemp.map(s=>String(s)) : [];
+      saveAITemp(bookId, aiArr);
+      const aiField2 = $('[data-field="ai_temp"]', root);
+      if(aiField2) aiField2.value = aiArr.join('\n');
 
-      commitContent();
-      render();
-    } catch(err){
-      alert('匯入失敗：' + (err?.message || err));
-    } finally {
-      input.value = '';
+      toast('已匯入');
+      updateAIContext();
+    }catch(e){
+      alert(`匯入失敗：${e.message || e}`);
     }
-  }, { passive:true });
+  });
 
-  // 輸入即存：title + textarea
-  let t = null;
-  root.addEventListener('input', (e) => {
-    const el = e.target;
-    const field = el?.dataset?.field;
-    if (!field) return;
-
-    if (field === 'title'){
-      state.book.title = el.value || '';
-    } else {
-      state.content[field] = el.value || '';
-    }
-
-    clearTimeout(t);
-    t = setTimeout(() => {
-      commitContent();
-    }, 250);
-  }, { passive:true });
+  // initial context
+  updateAIContext();
 }
