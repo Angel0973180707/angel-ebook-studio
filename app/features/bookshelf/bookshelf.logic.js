@@ -1,86 +1,67 @@
-// app/features/bookshelf/bookshelf.logic.js
+import { uid, now, toast } from '../../core/utils.js';
+import { loadBooks, saveBooks, saveBookContent } from '../../core/store.js';
 import { bookshelfHTML } from './bookshelf.view.js';
 
-const LS_KEY = 'angel_ebook_books_v1';
-
-function safeJsonParse(str, fallback) {
-  try { return JSON.parse(str); } catch { return fallback; }
-}
-
-function loadBooks() {
-  const raw = localStorage.getItem(LS_KEY);
-  const data = raw ? safeJsonParse(raw, []) : [];
-  return Array.isArray(data) ? data : [];
-}
-
-function saveBooks(books) {
-  localStorage.setItem(LS_KEY, JSON.stringify(books));
-}
-
-function newId() {
-  return 'b_' + Math.random().toString(16).slice(2) + Date.now().toString(16);
-}
-
-export function mountBookshelf(root) {
-  if (!root) return;
-
+export function mountBookshelf(root){
   const state = { books: loadBooks() };
 
-  function render() {
-    root.innerHTML = bookshelfHTML({ books: state.books });
+  function render(){
+    // newest first
+    const books = [...state.books].sort((a,b)=> (b.updatedAt||0)-(a.updatedAt||0));
+    root.innerHTML = bookshelfHTML({ books });
   }
 
-  function commit() {
+  function newBook(){
+    const id = uid('book');
+    const book = {
+      id,
+      title: '未命名書稿',
+      status: 'draft',
+      createdAt: now(),
+      updatedAt: now()
+    };
+    state.books.unshift(book);
     saveBooks(state.books);
-    render();
+    saveBookContent(id, { inspiration:'', draft:'', final:'' });
+    toast('已新增一本書');
+    location.hash = `#/edit/${id}`;
   }
 
-  render();
-
-  root.onclick = (e) => {
+  root.addEventListener('click', (e)=>{
     const btn = e.target.closest('button[data-action]');
-    if (!btn) return;
+    if(!btn) return;
     const action = btn.dataset.action;
+    if(action === 'newBook') return newBook();
+    const item = e.target.closest('.bookItem');
+    const id = item?.dataset.bookId;
+    if(!id) return;
+    const idx = state.books.findIndex(b=>b.id===id);
+    if(idx<0) return;
 
-    if (action === 'newBook') {
-      const id = newId();
-      state.books.unshift({
-        id,
-        title: '我的新書',
-        status: 'draft',
-        updatedAt: Date.now()
-      });
-      commit();
-      // ✅ 直接進編輯頁
+    if(action === 'open'){
       location.hash = `#/edit/${id}`;
       return;
     }
-
-    const item = e.target.closest('.bookItem');
-    const id = item?.dataset?.bookId;
-    if (!id) return;
-
-    const idx = state.books.findIndex(b => b.id === id);
-    if (idx < 0) return;
-
-    if (action === 'delete') {
-      state.books.splice(idx, 1);
-      commit();
-      return;
-    }
-
-    if (action === 'toggleStatus') {
+    if(action === 'toggleStatus'){
       const b = state.books[idx];
       b.status = (b.status === 'published') ? 'draft' : 'published';
-      b.updatedAt = Date.now();
-      commit();
+      b.updatedAt = now();
+      saveBooks(state.books);
+      toast('已切換狀態');
+      render();
       return;
     }
+    if(action === 'delete'){
+      if(!confirm('確定要刪除這本書？（內容也會一併刪除）')) return;
+      state.books.splice(idx,1);
+      saveBooks(state.books);
+      localStorage.removeItem(`aes_book_${id}_content_v1`);
+      localStorage.removeItem(`aes_book_${id}_ai_temp_v1`);
+      toast('已刪除');
+      render();
+      return;
+    }
+  }, { passive: true });
 
-    if (action === 'open') {
-      // ✅ 導到編輯頁
-      location.hash = `#/edit/${id}`;
-      return;
-    }
-  };
+  render();
 }
