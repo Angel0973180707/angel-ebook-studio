@@ -1,63 +1,68 @@
-import { DB_NAME, DB_VERSION } from './constants.js';
+import { LS_KEYS } from './constants.js';
 
-let dbPromise = null;
-
-export function initStore(){
-  if(dbPromise) return dbPromise;
-  dbPromise = new Promise((resolve, reject) => {
-    const req = indexedDB.open(DB_NAME, DB_VERSION);
-
-    req.onupgradeneeded = (e) => {
-      const db = e.target.result;
-      if(!db.objectStoreNames.contains('books')) db.createObjectStore('books', { keyPath:'id' });
-      if(!db.objectStoreNames.contains('chapters')) db.createObjectStore('chapters', { keyPath:'id' });
-      if(!db.objectStoreNames.contains('assets')) db.createObjectStore('assets', { keyPath:'id' });
-      if(!db.objectStoreNames.contains('settings')) db.createObjectStore('settings', { keyPath:'id' });
-    };
-
-    req.onsuccess = () => resolve(req.result);
-    req.onerror = () => reject(req.error);
-  });
-  return dbPromise;
+function safeParse(str, fallback){
+  try{ return JSON.parse(str); }catch{ return fallback; }
 }
 
-async function withStore(storeName, mode, fn){
-  const db = await initStore();
-  return new Promise((resolve, reject) => {
-    const tx = db.transaction(storeName, mode);
-    const store = tx.objectStore(storeName);
-    const result = fn(store);
-    tx.oncomplete = () => resolve(result);
-    tx.onerror = () => reject(tx.error);
+export function loadJSON(key, fallback){
+  return safeParse(localStorage.getItem(key) || '', fallback);
+}
+
+export function saveJSON(key, value){
+  localStorage.setItem(key, JSON.stringify(value));
+}
+
+export function loadBooks(){
+  return loadJSON(LS_KEYS.BOOKS, []);
+}
+
+export function saveBooks(books){
+  saveJSON(LS_KEYS.BOOKS, books);
+}
+
+export function loadBookContent(id){
+  return loadJSON(LS_KEYS.BOOK_CONTENT(id), {
+    inspiration: '',
+    draft: '',
+    final: ''
   });
 }
 
-export async function getBooks(){
-  return withStore('books', 'readonly', (store) => {
-    return new Promise((resolve, reject) => {
-      const req = store.getAll();
-      req.onsuccess = () => resolve(req.result || []);
-      req.onerror = () => reject(req.error);
-    });
+export function saveBookContent(id, content){
+  saveJSON(LS_KEYS.BOOK_CONTENT(id), content);
+}
+
+export function loadAITemp(id){
+  return loadJSON(LS_KEYS.AI_TEMP(id), []);
+}
+
+export function saveAITemp(id, items){
+  saveJSON(LS_KEYS.AI_TEMP(id), items);
+}
+
+export function loadAILibrary(){
+  // global reusable commands
+  return loadJSON(LS_KEYS.AI_LIBRARY, {
+    pinned: ['speech_to_book_no_ai'],
+    items: {
+      speech_to_book_no_ai: {
+        id: 'speech_to_book_no_ai',
+        title: '口說稿 → 電子書書稿（去 AI 感）',
+        body:
+`請把以下「口說稿」整理為電子書書稿章節，不是口說稿。\n\n轉換原則：\n1) 去除口語填充、即時提問與對話感\n2) 增加段落與留白，讓閱讀節奏變慢\n3) 不照原順序逐句轉寫，而是重組為清楚的書稿結構\n4) 每章包含：開場感受／理解鋪陳／一個轉彎洞見／溫柔收束（不說教、不給指令）\n5) 刻意避免『以下將說明』『這代表』等說明性語句；不要總結\n\n以下是口說稿：\n`
+      }
+    }
   });
 }
 
-export async function saveBook(book){
-  return withStore('books', 'readwrite', (store) => {
-    return new Promise((resolve, reject) => {
-      const req = store.put(book);
-      req.onsuccess = () => resolve(true);
-      req.onerror = () => reject(req.error);
-    });
-  });
+export function saveAILibrary(lib){
+  saveJSON(LS_KEYS.AI_LIBRARY, lib);
 }
 
-export async function deleteBook(bookId){
-  return withStore('books', 'readwrite', (store) => {
-    return new Promise((resolve, reject) => {
-      const req = store.delete(bookId);
-      req.onsuccess = () => resolve(true);
-      req.onerror = () => reject(req.error);
-    });
-  });
+export function loadUIPref(){
+  return loadJSON(LS_KEYS.UI_PREF, {});
+}
+
+export function saveUIPref(pref){
+  saveJSON(LS_KEYS.UI_PREF, pref);
 }
