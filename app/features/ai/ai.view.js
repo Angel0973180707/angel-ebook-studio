@@ -1,32 +1,52 @@
-export function aiPanelHTML({ provider }) {
+// app/features/ai/ai.view.js
+export function aiDrawerHTML({ title = 'AI 協作', prompts = [] } = {}) {
+  const items = prompts.length
+    ? prompts.map((p, idx) => `
+      <article class="aiCard" data-idx="${idx}">
+        <div class="aiCardTxt">
+          <div class="aiCardTitle">${escapeHTML(p.title || '未命名指令')}</div>
+          <div class="aiCardDesc">${escapeHTML(p.desc || '')}</div>
+        </div>
+        <div class="aiCardActions">
+          <button class="btn small" data-action="apply" data-idx="${idx}">套用</button>
+          <button class="btn small danger" data-action="remove" data-idx="${idx}">刪除</button>
+        </div>
+      </article>
+    `).join('')
+    : `<div class="aiEmpty">
+         <div class="aiEmptyTitle">還沒有指令</div>
+         <div class="aiEmptySub">你可以先新增一條「臨時指派」，之後再存成指令庫。</div>
+       </div>`;
+
   return `
-  <div class="modalBackdrop" data-ai="backdrop" aria-hidden="false">
-    <div class="modalSheet" role="dialog" aria-modal="true" aria-label="AI 協作">
-      <div class="modalHead">
-        <div class="modalTitle">AI 協作</div>
-        <button class="btn small ghost" data-ai="close" type="button">關閉</button>
+    <div class="aiBackdrop" data-action="close"></div>
+    <section class="aiDrawer" role="dialog" aria-modal="true" aria-label="${escapeHTML(title)}">
+      <div class="aiHead">
+        <div class="aiHeadLeft">
+          <div class="aiHeadTitle">${escapeHTML(title)}</div>
+          <div class="aiHeadSub">可儲存臨時指派｜可建立指令庫</div>
+        </div>
+        <button class="btn small ghost" data-action="close">關閉</button>
       </div>
 
-      <div class="modalBody">
-        <div class="subtle">預設：<b>${provider}</b></div>
-
-        <div class="seg">
-          <button class="btn small" data-ai="pick" data-provider="ChatGPT" type="button">ChatGPT（預設）</button>
-          <button class="btn small ghost" data-ai="pick" data-provider="Gemini" type="button">Gemini</button>
-          <button class="btn small ghost" data-ai="pick" data-provider="Claude" type="button">Claude</button>
-        </div>
-
-        <div class="panel mini">
-          <div class="h3">你想怎麼協作？</div>
-          <textarea id="aiPrompt" class="ta" rows="5" placeholder="例如：幫我把這本書的第一章整理成 3 個段落，語氣溫柔、有畫面感。"></textarea>
-          <div class="row">
-            <button class="btn" data-ai="openLink" type="button">打開 AI 協作連結</button>
-            <button class="btn ghost" data-ai="copyPrompt" type="button">複製提示詞</button>
-          </div>
-          <div class="hint">提示：我們先做「開連結＋複製提示詞」，先穩再長大。</div>
-        </div>
+      <div class="aiToolbar">
+        <button class="btn small" data-action="new">＋ 臨時指派</button>
+        <button class="btn small ghost" data-action="library">指令庫</button>
       </div>
-    </div>
-  </div>
+
+      <!-- ✅ 這個 aiBody 一定要能滾動 -->
+      <div class="aiBody" id="aiBody">
+        ${items}
+      </div>
+    </section>
   `;
+}
+
+function escapeHTML(s){
+  return String(s ?? '')
+    .replaceAll('&','&amp;')
+    .replaceAll('<','&lt;')
+    .replaceAll('>','&gt;')
+    .replaceAll('"','&quot;')
+    .replaceAll("'","&#039;");
 }
