@@ -1,65 +1,59 @@
-import { uid, now } from '../../core/utils.js';
-import { getBooks, saveBook, deleteBook } from '../../core/store.js';
-import { bookshelfHTML } from './bookshelf.view.js';
+// app/features/bookshelf/bookshelf.logic.js
 
-export function mountBookshelf(appEl){
-  let books = [];
+import { renderBookshelf } from './bookshelf.view.js';
 
-  async function refresh(){
-    books = await getBooks();
-    books.sort((a,b) => (b.updatedAt||0) - (a.updatedAt||0));
-    appEl.innerHTML = bookshelfHTML({ books });
+/**
+ * 系統入口：掛載書庫
+ * main.js 會找這個函式
+ */
+export function mountBookshelf(container) {
+  if (!container) {
+    console.warn('[bookshelf] container not found');
+    return;
   }
 
-  async function onAction(action, bookId){
-    if(action === 'newBook'){
-      const title = prompt('書名（可先留空，之後再改）', '我的新書');
-      const t = (title || '').trim() || '我的新書';
-      await saveBook({
-        id: uid('book'),
-        title: t,
-        status: 'draft',
-        createdAt: now(),
-        updatedAt: now(),
-        version: 1
-      });
-      await refresh();
-      return;
-    }
+  const state = loadBooks();
+  container.innerHTML = renderBookshelf(state);
 
-    if(!bookId) return;
-    const book = books.find(b => b.id === bookId);
-    if(!book) return;
+  bindEvents(container, state);
+}
 
-    if(action === 'toggleStatus'){
-      const next = book.status === 'published' ? 'draft' : 'published';
-      await saveBook({ ...book, status: next, updatedAt: now() });
-      await refresh();
-      return;
-    }
+/* =========================
+   資料層
+========================= */
 
-    if(action === 'delete'){
-      const ok = confirm(`確定刪除「${book.title}」？\n（這一步無法復原）`);
-      if(!ok) return;
-      await deleteBook(bookId);
-      await refresh();
-      return;
-    }
-
-    if(action === 'open'){
-      alert(`即將開啟：${book.title}\n\n下一步我會幫你接：章節/圖文編輯器。`);
-      return;
-    }
+function loadBooks() {
+  try {
+    return JSON.parse(localStorage.getItem('angel_bookshelf')) || [];
+  } catch {
+    return [];
   }
+}
 
-  appEl.addEventListener('click', (e) => {
-    const btn = e.target.closest('[data-action]');
-    if(!btn) return;
-    const action = btn.dataset.action;
-    const card = btn.closest('[data-book-id]');
-    const bookId = card ? card.dataset.bookId : null;
-    onAction(action, bookId);
+function saveBooks(books) {
+  localStorage.setItem('angel_bookshelf', JSON.stringify(books));
+}
+
+/* =========================
+   行為綁定
+========================= */
+
+function bindEvents(container, books) {
+  const addBtn = container.querySelector('[data-add-book]');
+  if (!addBtn) return;
+
+  addBtn.addEventListener('click', () => {
+    const title = prompt('書名');
+    if (!title) return;
+
+    books.push({
+      id: Date.now(),
+      title,
+      chapters: []
+    });
+
+    saveBooks(books);
+    container.innerHTML = renderBookshelf(books);
+    bindEvents(container, books);
   });
-
-  refresh();
 }
