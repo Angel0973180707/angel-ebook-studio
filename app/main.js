@@ -10,30 +10,50 @@ function escapeHTML(s){
 
 function show(title, msg) {
   root.innerHTML = `
-    <section style="padding:24px; line-height:1.65;">
+    <section style="padding:18px 16px; line-height:1.6;">
       <div style="font-size:18px; font-weight:800; margin-bottom:10px;">${escapeHTML(title)}</div>
       <pre style="white-space:pre-wrap; opacity:.92;">${escapeHTML(msg)}</pre>
-      <div style="margin-top:14px; opacity:.85; font-size:12px;">
-        Tip：若你剛更新 GitHub Pages，有時需「硬重整」或等幾分鐘快取更新。
+      <div style="margin-top:12px; opacity:.75; font-size:12px;">
+        BUILD: 2026-01-17-1600
       </div>
     </section>
   `;
 }
 
-async function mountAIButton() {
-  // AI 模組永遠不致命：不存在就跳過
+async function boot() {
   try {
-    const ai = await import('./features/ai/ai.logic.js');
-    if (ai?.mountAI) ai.mountAI({ btnSelector: '#btnAi' });
-  } catch (e) {
-    console.warn('AI skipped:', e);
+    show('啟動中…', '正在載入 modules…');
+
+    // 1) AI（可有可無）
+    try {
+      const ai = await import('./features/ai/ai.logic.js');
+      if (ai?.mountAI) {
+        ai.mountAI({ btnSelector: '#btnAi' });
+      } else {
+        console.warn('AI module loaded but mountAI not found');
+      }
+    } catch (e) {
+      console.warn('AI module skipped:', e);
+    }
+
+    // 2) 書庫（必須）
+    const bs = await import('./features/bookshelf/bookshelf.logic.js');
+
+    if (!bs?.mountBookshelf) {
+      const keys = Object.keys(bs || {});
+      show(
+        '書庫掛載失敗',
+        `bookshelf.logic.js 已載入，但找不到 mountBookshelf()\n\nexports:\n- ${keys.join('\n- ')}\n\n請確認 bookshelf.logic.js 內有：\nexport function mountBookshelf(root) { ... }`
+      );
+      return;
+    }
+
+    // ✅ 正常：掛載書庫
+    bs.mountBookshelf(root);
+
+  } catch (err) {
+    show('啟動失敗', err?.stack || err?.message || String(err));
   }
 }
 
-function parseHash() {
-  const raw = (location.hash || '').replace(/^#/, '').trim();
-  if (!raw || raw === '/' || raw === 'books') return { name: 'books' };
-  const p = raw.split('/').filter(Boolean);
-  if (p[0] === 'edit' && p[1]) return { name: 'edit', bookId: p[1] };
-  if (p[0] === 'books') return { name: 'books' };
-  return {
+boot();
