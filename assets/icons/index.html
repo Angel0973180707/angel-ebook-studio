@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <meta name="theme-color" content="#0b1411" />
+  <title>Angel Ebook Studio</title>
+
+  <link rel="manifest" href="manifest.json" />
+  <link rel="icon" href="assets/icons/icon-192.png" />
+  <link rel="apple-touch-icon" href="assets/icons/icon-192.png" />
+
+  <link rel="stylesheet" href="style.css" />
+</head>
+
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <div class="brandTitle">Angel Ebook Studio</div>
+      <div class="brandSub">電子書協作與成品展示｜v0.1</div>
+    </div>
+
+    <div class="actions">
+      <button class="btn ghost" id="btnAi" type="button">AI 協作</button>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <section class="card">
+      <h2 class="h2">AI 協作連結已就位</h2>
+      <p class="p">
+        這是一個可插拔的協作面板：預設 <b>ChatGPT</b>，備選 <b>Gemini / Claude</b>。
+        你可以一鍵複製提示詞，再一鍵開啟 AI。
+      </p>
+
+      <div class="sounddock" aria-label="音景">
+        <div class="sounddockInner">
+          <button class="chip" data-sound="night" type="button" aria-pressed="false">夜鳥</button>
+          <button class="chip" data-sound="ocean" type="button" aria-pressed="false">海浪</button>
+          <div class="soundHint">把 night.mp3 / ocean.mp3 放到 assets/audio/ 就能播放</div>
+        </div>
+      </div>
+
+      <div class="hint">
+        這份壓縮包是一個「乾淨可發佈骨架」。你之後把電子書書庫/章節/封面編輯器接進來即可。
+      </div>
+    </section>
+  </main>
+
+  <!-- AI 協作面板 -->
+  <dialog class="dialog" id="aiDialog" aria-label="AI 協作面板">
+    <form method="dialog" class="dialogInner">
+      <div class="dialogHead">
+        <div>
+          <div class="dialogTitle">AI 協作面板</div>
+          <div class="dialogSub">預設 ChatGPT｜備選 Gemini / Claude｜不綁平台</div>
+        </div>
+        <button class="iconBtn" id="btnCloseAi" type="button" aria-label="關閉">✕</button>
+      </div>
+
+      <div class="dialogBody">
+        <div class="field">
+          <label class="label" for="aiProvider">AI 入口（快速切換）</label>
+          <div class="row">
+            <select class="input" id="aiProvider">
+              <option value="chatgpt">ChatGPT（預設）</option>
+              <option value="gemini">Gemini</option>
+              <option value="claude">Claude</option>
+              <option value="custom">自訂連結</option>
+            </select>
+            <button class="btn" id="btnSaveAi" type="button">儲存</button>
+          </div>
+          <div class="mini">儲存後，「開啟 AI 協作」會用你設定的入口。</div>
+        </div>
+
+        <div class="field" id="customLinkBox" hidden>
+          <label class="label" for="aiLink">自訂 AI 連結</label>
+          <input class="input" id="aiLink" type="url" placeholder="例如：https://chatgpt.com/" />
+          <div class="mini">要含 https:// 才能儲存。</div>
+        </div>
+
+        <hr class="hr" />
+
+        <div class="field">
+          <label class="label">選一個協作任務</label>
+          <div class="chips" id="promptChips"></div>
+        </div>
+
+        <div class="field">
+          <label class="label" for="sourceText">你的原文（可貼一段）</label>
+          <textarea class="textarea" id="sourceText" rows="6" placeholder="把你要協作的段落貼在這裡…"></textarea>
+        </div>
+
+        <div class="field">
+          <label class="label" for="promptBox">提示詞（可一鍵複製）</label>
+          <textarea class="textarea" id="promptBox" rows="8" readonly></textarea>
+
+          <div class="row">
+            <button class="btn" id="btnCopyPrompt" type="button">一鍵複製提示詞</button>
+            <button class="btn ghost" id="btnOpenAi" type="button">開啟 AI 協作</button>
+          </div>
+
+          <div class="mini">使用方式：複製 → 開啟 AI → 貼上 → 讓 AI 幫你磨順/整理/生成。</div>
+        </div>
+      </div>
+
+      <div class="dialogFoot">
+        <button class="btn ghost" type="submit">完成</button>
+      </div>
+    </form>
+  </dialog>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script src="app.js"></script>
+</body>
+</html>
