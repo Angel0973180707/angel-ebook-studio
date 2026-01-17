@@ -1,5 +1,4 @@
 // app/features/bookshelf/bookshelf.logic.js
-
 import { bookshelfHTML } from './bookshelf.view.js';
 
 const LS_KEY = 'angel_ebook_books_v1';
@@ -28,7 +27,6 @@ export function mountBookshelf(root) {
   const state = { books: loadBooks() };
 
   function render() {
-    // ✅ 重點：永遠把陣列丟進去
     root.innerHTML = bookshelfHTML({ books: state.books });
   }
 
@@ -39,20 +37,22 @@ export function mountBookshelf(root) {
 
   render();
 
-  // 事件委派
   root.onclick = (e) => {
     const btn = e.target.closest('button[data-action]');
     if (!btn) return;
     const action = btn.dataset.action;
 
     if (action === 'newBook') {
+      const id = newId();
       state.books.unshift({
-        id: newId(),
+        id,
         title: '我的新書',
         status: 'draft',
         updatedAt: Date.now()
       });
       commit();
+      // ✅ 直接進編輯頁
+      location.hash = `#/edit/${id}`;
       return;
     }
 
@@ -78,8 +78,8 @@ export function mountBookshelf(root) {
     }
 
     if (action === 'open') {
-      // v1：先用 alert 代替導頁（下一步我們做 Editor Page）
-      alert('下一步：開啟編輯頁（Editor v1）');
+      // ✅ 導到編輯頁
+      location.hash = `#/edit/${id}`;
       return;
     }
   };
