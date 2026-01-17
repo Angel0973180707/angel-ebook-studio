@@ -259,3 +259,10 @@ button.btn {
     min-width: 132px;
   }
 }
+/* ===== Patch: prevent ugly line breaks in buttons ===== */
+#btnAi,
+.btn {
+  white-space: nowrap;      /* 不換行 */
+  word-break: keep-all;     /* 中文/英文都盡量不要硬拆 */
+  overflow-wrap: normal;    /* 不強制斷字 */
+}
