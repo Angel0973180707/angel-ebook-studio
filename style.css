@@ -669,3 +669,5 @@ body.aiOpen {
     flex-wrap: wrap;
   }
 }
+/* 強制所有 sub 都水平（若你全站有 vertical 模式） */
+.sub{ writing-mode: horizontal-tb; }
