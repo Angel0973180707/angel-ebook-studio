@@ -1,3 +1,5 @@
+// app/features/bookshelf/bookshelf.view.js
+
 export function bookshelfHTML({ books = [] }) {
   const items = books.length
     ? books.map(b => `
@@ -37,6 +39,11 @@ export function bookshelfHTML({ books = [] }) {
       <div class="list">${items}</div>
     </section>
   `;
+}
+
+/** 兼容用：讓 logic 可以用 renderBookshelf() 這個更直覺的名字 */
+export function renderBookshelf(books = []) {
+  return bookshelfHTML({ books });
 }
 
 function fmtTime(ts){
