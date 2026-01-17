@@ -171,3 +171,56 @@ body{
   transition: opacity .2s ease;
 }
 .toast.show{ opacity: 1; }
+/* ===== Bookshelf UI (append) ===== */
+#app{ padding:16px; max-width:980px; margin:0 auto; }
+
+.panel{
+  border:1px solid rgba(255,255,255,.12);
+  border-radius:18px;
+  padding:16px;
+  background: rgba(255,255,255,.03);
+}
+
+.panelHead{
+  display:flex;
+  align-items:flex-end;
+  justify-content:space-between;
+  gap:12px;
+  margin-bottom:12px;
+}
+
+.h2{ font-size:18px; margin:0; font-weight:800; }
+.sub{ opacity:.75; font-size:12px; margin-top:6px; }
+
+.list{ display:flex; flex-direction:column; gap:10px; }
+
+.bookItem{
+  display:flex;
+  justify-content:space-between;
+  gap:12px;
+  padding:12px;
+  border:1px solid rgba(255,255,255,.10);
+  border-radius:16px;
+  background: rgba(0,0,0,.12);
+}
+
+.bookTitle{ font-weight:800; }
+.bookMeta{ margin-top:6px; display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
+.metaTxt{ font-size:12px; opacity:.7; }
+
+.pill{
+  font-size:12px;
+  padding:4px 10px;
+  border-radius:999px;
+  border:1px solid rgba(255,255,255,.16);
+  opacity:.9;
+}
+.pill.ok{ background: rgba(90,170,130,.18); }
+
+.bookActions{ display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
+
+.btn.small{ padding:8px 10px; font-size:12px; border-radius:12px; }
+.btn.danger{ border-color: rgba(255,120,120,.28); }
+.empty{ padding:18px; text-align:center; opacity:.85; }
+.emptyTitle{ font-weight:800; margin-bottom:6px; }
+.emptySub{ font-size:12px; opacity:.75; }
